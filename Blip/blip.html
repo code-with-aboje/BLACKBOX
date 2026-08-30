@@ -1,0 +1,1685 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Blips</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #000000;
+    --card: #0d0f0e;
+    --card-hover: #121412;
+    --line: rgba(255,255,255,0.08);
+    --phosphor: #00ff7f;
+    --text: #f2f4f3;
+    --muted: #8a938e;
+    --danger: #ff4d6d;
+
+    /* sizing tokens */
+    --avatar-size: 44px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'IBM Plex Sans', sans-serif;
+    overscroll-behavior: none;
+  }
+
+  body {
+    padding: 16px;
+    padding-top: 82px; /* clears the fixed top bar */
+  }
+
+  /* ===== Fixed top bar (trigger) ===== */
+  .top-bar {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: rgba(13,15,14,0.9);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--line);
+    padding: 14px 16px;
+    z-index: 100;
+  }
+
+  .top-bar .composer-trigger {
+    flex: 1;
+    text-align: left;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 10px 16px;
+    color: var(--muted);
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.9em;
+    cursor: pointer;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .top-bar .composer-trigger:hover { border-color: rgba(0,255,127,0.3); color: var(--text); }
+
+  /* ===== Dialog ===== */
+  .dialog-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    -webkit-backdrop-filter: blur(2px);
+    backdrop-filter: blur(2px);
+    z-index: 200;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 60px 16px;
+    overflow-y: auto;
+  }
+  .dialog-backdrop.open { display: flex; }
+
+  .dialog {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    width: 100%;
+    max-width: 480px;
+    padding: 18px 18px 16px;
+  }
+
+  .dialog-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+  }
+
+  .dialog-title {
+    font-family: 'Space Mono', monospace;
+    font-weight: 700;
+    font-size: 0.85em;
+    letter-spacing: 0.5px;
+    color: var(--text);
+  }
+
+  .dialog-close {
+    background: none;
+    border: none;
+    color: var(--muted);
+    cursor: pointer;
+    display: flex;
+    padding: 4px;
+  }
+  .dialog-close:hover { color: var(--text); }
+  .dialog-close svg { width: 18px; height: 18px; }
+
+  .dialog-who {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+
+  .dialog textarea {
+    width: 100%;
+    min-height: 110px;
+    resize: vertical;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--text);
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.95em;
+    line-height: 1.5;
+    margin-bottom: 12px;
+  }
+  .dialog textarea::placeholder { color: var(--muted); }
+
+  .image-previews {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  .image-previews:empty { display: none; }
+
+  .image-preview {
+    position: relative;
+    aspect-ratio: 1;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid var(--line);
+  }
+  .image-preview img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .image-preview .remove-image {
+    position: absolute;
+    top: 4px; right: 4px;
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    background: rgba(0,0,0,0.65);
+    border: none;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 12px;
+    line-height: 1;
+  }
+
+  .dialog-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 12px;
+    border-top: 1px solid var(--line);
+  }
+
+  .image-picker-btn {
+    background: none;
+    border: none;
+    color: var(--muted);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    padding: 6px;
+    border-radius: 50%;
+    transition: color 0.15s ease, background 0.15s ease;
+  }
+  .image-picker-btn:hover { color: var(--phosphor); background: rgba(0,255,127,0.08); }
+  .image-picker-btn svg { width: 20px; height: 20px; }
+
+  .avatar {
+    width: var(--avatar-size); height: var(--avatar-size);
+    border-radius: 50%;
+    background: linear-gradient(135deg, #163d29, #0a1611);
+    border: 1px solid var(--line);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--phosphor);
+    font-family: 'Space Mono', monospace;
+    font-size: 0.72em;
+    font-weight: 700;
+    flex-shrink: 0;
+    overflow: hidden;
+  }
+  .avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .composer input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--text);
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.92em;
+    min-width: 0;
+  }
+
+  .composer input::placeholder {
+    color: var(--muted);
+  }
+
+  .composer-icons {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: var(--muted);
+    flex-shrink: 0;
+  }
+
+  .composer-icons svg {
+    width: 18px; height: 18px;
+    cursor: pointer;
+    transition: color 0.15s ease;
+  }
+  .composer-icons svg:hover { color: var(--phosphor); }
+
+  .blip-btn {
+    background: var(--phosphor);
+    color: #04150a;
+    border: none;
+    font-family: 'Space Mono', monospace;
+    font-weight: 700;
+    font-size: 0.7em;
+    letter-spacing: 0.5px;
+    padding: 9px 16px;
+    border-radius: 999px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: transform 0.1s ease, opacity 0.15s ease;
+  }
+  .blip-btn:hover { transform: translateY(-1px); }
+  .blip-btn:disabled { opacity: 0.4; cursor: default; transform: none; }
+
+  /* ===== Blip cards ===== */
+  .feed {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .blip-skeleton {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    padding: 16px 18px 14px;
+  }
+  .blip-skeleton .sk-row { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+  .blip-skeleton .sk-avatar {
+    width: var(--avatar-size); height: var(--avatar-size); border-radius: 50%; flex-shrink: 0;
+  }
+  .blip-skeleton .sk-line { border-radius: 6px; }
+  .blip-skeleton .sk-name { width: 90px; height: 12px; margin-bottom: 6px; }
+  .blip-skeleton .sk-time { width: 50px; height: 10px; }
+  .blip-skeleton .sk-text1 { width: 100%; height: 12px; margin-bottom: 8px; }
+  .blip-skeleton .sk-text2 { width: 70%; height: 12px; }
+  .blip-skeleton .sk-avatar, .blip-skeleton .sk-line {
+    background: linear-gradient(90deg, var(--line) 25%, rgba(0,255,127,0.08) 50%, var(--line) 75%);
+    background-size: 200% 100%;
+    animation: skeletonShimmer 1.4s ease-in-out infinite;
+  }
+  @keyframes skeletonShimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+
+  .blip {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    padding: 16px 18px 14px;
+    transition: background 0.15s ease;
+  }
+
+  .blip:hover { background: var(--card-hover); }
+
+  .blip-head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 10px;
+  }
+
+  .blip-head-text {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.3;
+  }
+
+  .blip-handle {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.85em;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .blip-time {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.72em;
+    color: var(--muted);
+  }
+
+  .blip-text {
+    font-size: 0.95em;
+    line-height: 1.55;
+    color: var(--text);
+    margin-bottom: 12px;
+  }
+
+  .blip-images {
+    display: grid;
+    gap: 6px;
+    margin-bottom: 12px;
+    border-radius: 14px;
+    overflow: hidden;
+  }
+  .blip-images.count-1 { grid-template-columns: 1fr; }
+  .blip-images.count-2 { grid-template-columns: 1fr 1fr; }
+  .blip-images.count-3 { grid-template-columns: 1fr 1fr; }
+  .blip-images img {
+    width: 100%;
+    height: 100%;
+    max-height: 320px;
+    object-fit: cover;
+    display: block;
+  }
+  .blip-images.count-3 img:first-child { grid-row: span 2; max-height: none; }
+
+  .blip-actions {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+  }
+
+  .blip-actions button {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-family: 'Space Mono', monospace;
+    font-size: 0.75em;
+    cursor: pointer;
+    padding: 4px 0;
+  }
+
+  .blip-actions svg {
+    width: 19px; height: 19px;
+    transition: transform 0.15s ease, color 0.15s ease;
+  }
+
+  .blip-actions button:hover svg { transform: scale(1.08); }
+  .blip-actions button:hover { color: var(--text); }
+  .blip-actions button.reblipped { color: var(--phosphor); }
+  .blip-actions button.reblipped svg { color: var(--phosphor); }
+  .blip-actions button.liked { color: var(--danger); }
+  .blip-actions button.liked svg { color: var(--danger); }
+  .blip-actions button.commented { color: var(--phosphor); }
+  .blip-actions button.commented svg { color: var(--phosphor); }
+
+  .blip-actions .spacer { flex: 1; }
+
+  /* ===== Comments panel ===== */
+  .comment-panel {
+    display: none;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--line);
+  }
+  .comment-panel.open { display: block; }
+
+  .comment-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+
+  .comment-item {
+    display: flex;
+    gap: 10px;
+  }
+
+  .comment-item .avatar {
+    width: 28px; height: 28px;
+    font-size: 0.6em;
+  }
+
+  .comment-body {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 8px 12px;
+    flex: 1;
+  }
+
+  .comment-handle {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.72em;
+    font-weight: 700;
+    color: var(--text);
+    display: block;
+    margin-bottom: 2px;
+  }
+
+  .comment-text {
+    font-size: 0.85em;
+    color: var(--text);
+    line-height: 1.45;
+  }
+
+  .comment-compose {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .comment-compose .avatar {
+    width: 30px; height: 30px;
+    font-size: 0.62em;
+  }
+
+  .comment-input {
+    flex: 1;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 9px 14px;
+    color: var(--text);
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.85em;
+    outline: none;
+  }
+  .comment-input:focus { border-color: rgba(0,255,127,0.4); }
+  .comment-input::placeholder { color: var(--muted); }
+
+  .comment-send {
+    background: none;
+    border: none;
+    color: var(--phosphor);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+  }
+  .comment-send svg { width: 20px; height: 20px; }
+  .comment-send:disabled { color: var(--muted); cursor: default; }
+
+  /* ===== Clickable profile bits (avatar + handle) ===== */
+  .blip-head .avatar, .comment-item .avatar { cursor: pointer; }
+  .blip-handle.clickable, .comment-handle.clickable { cursor: pointer; }
+  .blip-handle.clickable:hover, .comment-handle.clickable:hover { color: var(--phosphor); text-decoration: underline; }
+
+  /* ===== Comment replies ===== */
+  .comment-meta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 4px;
+  }
+  .comment-time {
+    color: var(--muted);
+    font-family: 'Space Mono', monospace;
+    font-size: 0.68em;
+    letter-spacing: 0.3px;
+  }
+  .comment-reply-btn {
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-family: 'Space Mono', monospace;
+    font-size: 0.68em;
+    letter-spacing: 0.3px;
+    cursor: pointer;
+    padding: 0;
+  }
+  .comment-reply-btn:hover { color: var(--phosphor); }
+
+  .comment-replies {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 10px;
+    padding-left: 20px;
+    border-left: 2px solid var(--line);
+  }
+  .comment-replies:empty { display: none; margin: 0; padding: 0; border: none; }
+
+  .reply-target-chip {
+    display: none;
+    align-items: center;
+    gap: 6px;
+    background: rgba(0,255,127,0.08);
+    border: 1px solid rgba(0,255,127,0.25);
+    color: var(--phosphor);
+    font-family: 'Space Mono', monospace;
+    font-size: 0.7em;
+    padding: 5px 10px;
+    border-radius: 999px;
+    margin-bottom: 8px;
+    width: fit-content;
+  }
+  .reply-target-chip.show { display: flex; }
+  .reply-target-chip button {
+    background: none;
+    border: none;
+    color: var(--phosphor);
+    cursor: pointer;
+    display: flex;
+    padding: 0;
+  }
+  .reply-target-chip svg { width: 12px; height: 12px; }
+
+  /* ===== Profile popover modal ===== */
+  .profile-modal-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    -webkit-backdrop-filter: blur(2px);
+    backdrop-filter: blur(2px);
+    z-index: 250;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 60px 16px;
+    overflow-y: auto;
+  }
+  .profile-modal-backdrop.open { display: flex; }
+
+  .profile-modal {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    width: 100%;
+    max-width: 420px;
+    padding: 18px 18px 16px;
+  }
+
+  .profile-modal-head {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 4px;
+  }
+
+  .profile-modal .modal-close {
+    background: none;
+    border: none;
+    color: var(--muted);
+    cursor: pointer;
+    display: flex;
+    padding: 4px;
+  }
+  .profile-modal .modal-close:hover { color: var(--text); }
+  .profile-modal .modal-close svg { width: 18px; height: 18px; }
+
+  .profile-modal-body { text-align: center; }
+
+  .profile-modal .avatar {
+    width: 72px; height: 72px;
+    font-size: 1.4em;
+    margin: 0 auto 12px;
+  }
+
+  .profile-modal-name {
+    font-family: 'Space Mono', monospace;
+    font-weight: 700;
+    font-size: 1.05em;
+    color: var(--text);
+  }
+
+  .profile-modal-role {
+    display: inline-block;
+    margin-top: 6px;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-weight: 500;
+    font-size: 0.7em;
+    padding: 2px 10px;
+    border: 1px solid rgba(0,255,127,0.4);
+    border-radius: 999px;
+    color: var(--phosphor);
+  }
+
+  .profile-modal-about {
+    font-size: 0.86em;
+    color: var(--muted);
+    line-height: 1.5;
+    margin: 14px 0;
+  }
+
+  .profile-modal-followers {
+    background: none;
+    border: none;
+    color: var(--text);
+    font-family: 'Space Mono', monospace;
+    font-size: 0.78em;
+    cursor: pointer;
+    margin-bottom: 16px;
+  }
+  .profile-modal-followers b { color: var(--phosphor); }
+  .profile-modal-followers:hover { text-decoration: underline; }
+
+  .profile-modal-follow-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: 100%;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--line);
+    color: var(--text);
+    font-family: 'Space Mono', monospace;
+    font-size: 0.78em;
+    letter-spacing: 0.4px;
+    padding: 11px 12px;
+    border-radius: 999px;
+    cursor: pointer;
+  }
+  .profile-modal-follow-btn.active {
+    background: var(--phosphor);
+    border-color: var(--phosphor);
+    color: #04150a;
+  }
+  .profile-modal-follow-btn.self { opacity: 0.5; cursor: default; }
+
+  /* ===== Small followers-list modal (opened from profile modal) ===== */
+  .followers-modal-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.65);
+    z-index: 260;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 90px 16px;
+    overflow-y: auto;
+  }
+  .followers-modal-backdrop.open { display: flex; }
+  .followers-modal {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    width: 100%;
+    max-width: 380px;
+    padding: 16px 16px 12px;
+  }
+  .followers-modal-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+  .followers-modal-title {
+    font-family: 'Space Mono', monospace;
+    font-weight: 700;
+    font-size: 0.8em;
+    color: var(--text);
+  }
+  .follower-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 2px;
+    cursor: pointer;
+  }
+  .follower-row:hover .name { color: var(--phosphor); }
+  .follower-row .avatar { width: 32px; height: 32px; font-size: 0.6em; }
+  .follower-row .name { font-family: 'Space Mono', monospace; font-size: 0.8em; color: var(--text); }
+
+  .blip-images img { cursor: zoom-in; }
+
+  /* ===== Lightbox (fullscreen image viewer) ===== */
+  .lightbox {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.92);
+    z-index: 300;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 16px;
+  }
+  .lightbox.open { display: flex; }
+  .lightbox img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    border-radius: 8px;
+    cursor: zoom-out;
+  }
+  .lightbox-close {
+    position: fixed;
+    top: 16px; right: 16px;
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid var(--line);
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+  }
+  .lightbox-close:hover { background: rgba(255,255,255,0.16); }
+  .lightbox-close svg { width: 18px; height: 18px; }
+  .lightbox-nav {
+    position: fixed;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid var(--line);
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+  }
+  .lightbox-nav:hover { background: rgba(255,255,255,0.16); }
+  .lightbox-nav svg { width: 22px; height: 22px; }
+  .lightbox-prev { left: 16px; }
+  .lightbox-next { right: 16px; }
+  .lightbox-nav.hidden { display: none; }
+
+  /* ===== Responsive scale-up on small screens ===== */
+  @media (max-width: 480px) {
+    :root {
+      --avatar-size: 48px;
+    }
+    body { padding: 12px; padding-top: 84px; }
+    .composer { padding: 14px 16px; border-radius: 20px; }
+    .composer input { font-size: 1em; }
+    .blip { padding: 16px; border-radius: 20px; }
+    .blip-handle { font-size: 0.92em; }
+    .blip-time { font-size: 0.76em; }
+    .blip-text { font-size: 1em; }
+    .blip-actions button { font-size: 0.8em; }
+    .blip-actions svg { width: 21px; height: 21px; }
+  }
+</style>
+</head>
+<body>
+
+  <div class="top-bar">
+    <div class="avatar">GX</div>
+    <button class="composer-trigger" id="openDialogBtn">broadcast a blip...</button>
+    <button class="blip-btn" id="openDialogBtn2">Make a Blip</button>
+  </div>
+
+  <div class="dialog-backdrop" id="dialogBackdrop">
+    <div class="dialog">
+      <div class="dialog-head">
+        <span class="dialog-title">NEW BLIP</span>
+        <button class="dialog-close" id="dialogCloseBtn">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="dialog-who">
+        <div class="avatar">GX</div>
+        <span class="blip-handle">you</span>
+      </div>
+      <textarea id="dialogTextarea" placeholder="broadcast a blip..."></textarea>
+      <div class="image-previews" id="imagePreviews"></div>
+      <div class="dialog-footer">
+        <label class="image-picker-btn" title="add images">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
+          <input type="file" id="imageInput" accept="image/*" multiple style="display:none;">
+        </label>
+        <button class="blip-btn" id="submitBlipBtn" disabled>Make a Blip</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="feed" id="feed">
+  </div>
+
+  <div class="lightbox" id="lightbox">
+    <button class="lightbox-close" id="lightboxClose">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+    <button class="lightbox-nav lightbox-prev" id="lightboxPrev">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    <img id="lightboxImg" src="" alt="">
+    <button class="lightbox-nav lightbox-next" id="lightboxNext">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+    </button>
+  </div>
+
+  <div class="profile-modal-backdrop" id="profileModalBackdrop">
+    <div class="profile-modal">
+      <div class="profile-modal-head">
+        <button class="modal-close" id="profileModalClose">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="profile-modal-body" id="profileModalBody">
+        <p style="text-align:center;color:var(--muted);padding:20px 0;font-size:0.85em;">Loading...</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="followers-modal-backdrop" id="followersModalBackdrop">
+    <div class="followers-modal">
+      <div class="followers-modal-head">
+        <span class="followers-modal-title" id="followersModalTitle">FOLLOWERS</span>
+        <button class="modal-close" id="followersModalClose">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div id="followersModalList"></div>
+    </div>
+  </div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../supabase-client.js"></script>
+
+<script>
+  // Name of the Supabase Storage bucket blip images are uploaded to.
+  // Change this one line if your bucket is named something else.
+  const BLIP_IMAGES_BUCKET = 'blip-images';
+
+  let me = null; // filled in by loadFeed() from the `profiles` table
+  const myInitials = () => (me ? me.username.slice(0, 2).toUpperCase() : '??');
+
+  const feed = document.getElementById('feed');
+  const dialogBackdrop = document.getElementById('dialogBackdrop');
+  const dialogTextarea = document.getElementById('dialogTextarea');
+  const submitBlipBtn = document.getElementById('submitBlipBtn');
+  const imageInput = document.getElementById('imageInput');
+  const imagePreviews = document.getElementById('imagePreviews');
+
+  const MAX_IMAGES = 4;
+  let selectedImages = []; // File objects staged for the next blip
+
+  // ----- Lightbox (fullscreen image viewer) -----
+  const lightbox = document.getElementById('lightbox');
+  const lightboxImg = document.getElementById('lightboxImg');
+  const lightboxPrev = document.getElementById('lightboxPrev');
+  const lightboxNext = document.getElementById('lightboxNext');
+  let lightboxSet = [];
+  let lightboxIndex = 0;
+
+  function updateLightboxNav() {
+    const multi = lightboxSet.length > 1;
+    lightboxPrev.classList.toggle('hidden', !multi);
+    lightboxNext.classList.toggle('hidden', !multi);
+  }
+
+  function openLightbox(images, index) {
+    lightboxSet = images;
+    lightboxIndex = index;
+    lightboxImg.src = lightboxSet[lightboxIndex];
+    updateLightboxNav();
+    lightbox.classList.add('open');
+  }
+
+  function closeLightbox() {
+    lightbox.classList.remove('open');
+    lightboxImg.src = '';
+  }
+
+  function showLightboxDelta(delta) {
+    if (lightboxSet.length === 0) return;
+    lightboxIndex = (lightboxIndex + delta + lightboxSet.length) % lightboxSet.length;
+    lightboxImg.src = lightboxSet[lightboxIndex];
+  }
+
+  document.getElementById('lightboxClose').addEventListener('click', closeLightbox);
+  lightboxPrev.addEventListener('click', () => showLightboxDelta(-1));
+  lightboxNext.addEventListener('click', () => showLightboxDelta(1));
+  lightbox.addEventListener('click', e => { if (e.target === lightbox) closeLightbox(); });
+  lightboxImg.addEventListener('click', closeLightbox);
+  document.addEventListener('keydown', e => {
+    if (!lightbox.classList.contains('open')) return;
+    if (e.key === 'Escape') closeLightbox();
+    if (e.key === 'ArrowLeft') showLightboxDelta(-1);
+    if (e.key === 'ArrowRight') showLightboxDelta(1);
+  });
+
+  // ----- Profile popover (clicking an avatar/handle on a post or comment) -----
+  const profileModalBackdrop = document.getElementById('profileModalBackdrop');
+  const profileModalBody = document.getElementById('profileModalBody');
+  const followersModalBackdrop = document.getElementById('followersModalBackdrop');
+  const followersModalList = document.getElementById('followersModalList');
+  const followersModalTitle = document.getElementById('followersModalTitle');
+
+  function closeProfileModal() { profileModalBackdrop.classList.remove('open'); }
+  function closeFollowersModal() { followersModalBackdrop.classList.remove('open'); }
+
+  document.getElementById('profileModalClose').addEventListener('click', closeProfileModal);
+  profileModalBackdrop.addEventListener('click', e => { if (e.target === profileModalBackdrop) closeProfileModal(); });
+  document.getElementById('followersModalClose').addEventListener('click', closeFollowersModal);
+  followersModalBackdrop.addEventListener('click', e => { if (e.target === followersModalBackdrop) closeFollowersModal(); });
+  document.addEventListener('keydown', e => {
+    if (e.key !== 'Escape') return;
+    if (followersModalBackdrop.classList.contains('open')) closeFollowersModal();
+    else if (profileModalBackdrop.classList.contains('open')) closeProfileModal();
+  });
+
+  async function openProfileModal(userId) {
+    if (!userId) return;
+    profileModalBody.innerHTML = '<p style="text-align:center;color:var(--muted);padding:20px 0;font-size:0.85em;">Loading...</p>';
+    profileModalBackdrop.classList.add('open');
+    try {
+      // profiles + follower_count + "do I follow them" in one round trip.
+      const [{ data: u, error }, { count: followerCount }, { data: myFollowRow }] = await Promise.all([
+        supabaseClient.from('profiles').select('id, username, avatar_url, about, role').eq('id', userId).single(),
+        supabaseClient.from('follows').select('*', { count: 'exact', head: true }).eq('followed_id', userId),
+        supabaseClient.from('follows').select('id').eq('follower_id', me.id).eq('followed_id', userId).maybeSingle()
+      ]);
+
+      if (error || !u) {
+        profileModalBody.innerHTML = `<p style="text-align:center;color:var(--muted);padding:20px 0;font-size:0.85em;">${error?.message || 'Could not load profile'}</p>`;
+        return;
+      }
+
+      u.follower_count = followerCount || 0;
+      u.followed_by_me = !!myFollowRow;
+      u.is_me = (userId === me.id);
+
+      profileModalBody.innerHTML = `
+        <div class="avatar"></div>
+        <div class="profile-modal-name"></div>
+        <div class="profile-modal-role"></div>
+        <div class="profile-modal-about"></div>
+        <button class="profile-modal-followers" id="profileFollowersBtn"><b class="fcount"></b> followers</button>
+        <br>
+        <button class="profile-modal-follow-btn" id="profileFollowBtn">
+          <span class="btn-label"></span>
+        </button>
+      `;
+      profileModalBody.querySelector('.avatar').innerHTML = avatarHtml(u.avatar_url, u.username);
+      profileModalBody.querySelector('.profile-modal-name').textContent = u.username;
+      const roleEl = profileModalBody.querySelector('.profile-modal-role');
+      if (u.role) { roleEl.textContent = u.role; } else { roleEl.style.display = 'none'; }
+      profileModalBody.querySelector('.profile-modal-about').textContent = u.about || 'No bio yet.';
+      profileModalBody.querySelector('.fcount').textContent = u.follower_count;
+
+      profileModalBody.querySelector('#profileFollowersBtn').addEventListener('click', () => openFollowersModal(u.id, u.username));
+
+      const followBtn = profileModalBody.querySelector('#profileFollowBtn');
+      const label = followBtn.querySelector('.btn-label');
+
+      if (u.is_me) {
+        followBtn.classList.add('self');
+        label.textContent = 'This is you';
+      } else {
+        function paint(following) {
+          followBtn.classList.toggle('active', following);
+          label.textContent = following ? 'Following' : 'Add Friend';
+        }
+        paint(u.followed_by_me);
+        followBtn.addEventListener('click', async () => {
+          followBtn.disabled = true;
+          try {
+            const result = await toggleFollow(u.id);
+            if (result) {
+              paint(result.following);
+              profileModalBody.querySelector('.fcount').textContent = result.follower_count;
+            }
+          } catch (e) { /* silent fail */ }
+          followBtn.disabled = false;
+        });
+      }
+    } catch (e) {
+      profileModalBody.innerHTML = '<p style="text-align:center;color:var(--muted);padding:20px 0;font-size:0.85em;">Network error.</p>';
+    }
+  }
+
+  // Follow/unfollow a user. On a brand new follow, also opens (or starts) a
+  // pending chat request with them, matching the old backend's behavior.
+  //
+  // NOTE (follow-up, not done here): the old PHP backend also inserted a row
+  // into `notifications` on new follows/likes/comments so the other user saw
+  // a bell alert. That was server-side logic — now that writes happen
+  // directly from the browser, nothing creates those notification rows
+  // anymore. Add a Postgres trigger (or Edge Function) on `follows`,
+  // `blip_likes`, and `blip_comments` to restore that.
+  async function toggleFollow(targetId) {
+    const { data: existing } = await supabaseClient
+      .from('follows')
+      .select('id')
+      .eq('follower_id', me.id)
+      .eq('followed_id', targetId)
+      .maybeSingle();
+
+    let following;
+    if (existing) {
+      await supabaseClient.from('follows').delete().eq('id', existing.id);
+      following = false;
+    } else {
+      const { error } = await supabaseClient
+        .from('follows')
+        .insert({ follower_id: me.id, followed_id: targetId });
+      if (error) return null;
+      following = true;
+
+      // Best-effort: open a pending chat with them. Silent fail is fine —
+      // this mirrors the old .catch(() => {}) fire-and-forget behavior.
+      // The Chats page itself hasn't been converted off PHP yet, so this
+      // assumes the `chats` table keeps the same shape/semantics.
+      (async () => {
+        try {
+          const [userA, userB] = me.id < targetId ? [me.id, targetId] : [targetId, me.id];
+          const { data: existingChat } = await supabaseClient
+            .from('chats')
+            .select('id')
+            .eq('user_a_id', userA)
+            .eq('user_b_id', userB)
+            .maybeSingle();
+          if (!existingChat) {
+            await supabaseClient.from('chats').insert({
+              user_a_id: userA,
+              user_b_id: userB,
+              requested_by: me.id,
+              status: 'pending'
+            });
+          }
+        } catch (e) { /* silent fail */ }
+      })();
+    }
+
+    const { count } = await supabaseClient
+      .from('follows')
+      .select('*', { count: 'exact', head: true })
+      .eq('followed_id', targetId);
+
+    return { following, follower_count: count || 0 };
+  }
+
+  async function openFollowersModal(userId, username) {
+    followersModalTitle.textContent = username.toUpperCase() + "'S FOLLOWERS";
+    followersModalList.innerHTML = '<p style="text-align:center;color:var(--muted);padding:20px 0;font-size:0.85em;">Loading...</p>';
+    followersModalBackdrop.classList.add('open');
+    try {
+      const { data: rows, error } = await supabaseClient
+        .from('follows')
+        .select('created_at, follower:follower_id(id, username, avatar_url)')
+        .eq('followed_id', userId)
+        .order('created_at', { ascending: false });
+
+      if (error || !rows || rows.length === 0) {
+        followersModalList.innerHTML = `<p style="text-align:center;color:var(--muted);padding:20px 0;font-size:0.85em;">${error ? (error.message || 'Could not load') : 'No followers yet.'}</p>`;
+        return;
+      }
+      followersModalList.innerHTML = '';
+      rows.forEach(row => {
+        const f = row.follower;
+        if (!f) return;
+        const el = document.createElement('div');
+        el.className = 'follower-row';
+        el.innerHTML = `<div class="avatar"></div><span class="name"></span>`;
+        el.querySelector('.avatar').innerHTML = avatarHtml(f.avatar_url, f.username);
+        el.querySelector('.name').textContent = f.username;
+        el.addEventListener('click', () => { closeFollowersModal(); openProfileModal(f.id); });
+        followersModalList.appendChild(el);
+      });
+    } catch (e) {
+      followersModalList.innerHTML = '<p style="text-align:center;color:var(--muted);padding:20px 0;font-size:0.85em;">Network error.</p>';
+    }
+  }
+
+  function timeAgo(dateStr) {
+    // Supabase timestamps already come back as ISO strings with a timezone
+    // (e.g. "2026-01-01T10:20:30.123456+00:00"), so they parse correctly as
+    // UTC on their own. The one case that still needs help is a "created_at"
+    // we generate ourselves right after an insert with `new Date().toISOString()`
+    // — that's already ISO too, so no conversion is actually needed either way.
+    const d = new Date(dateStr);
+    const secs = Math.floor((Date.now() - d.getTime()) / 1000);
+    if (secs < 5) return 'just now';
+    if (secs < 60) return secs + 's ago';
+    if (secs < 3600) return Math.floor(secs / 60) + 'm ago';
+    if (secs < 86400) return Math.floor(secs / 3600) + 'h ago';
+    return Math.floor(secs / 86400) + 'd ago';
+  }
+
+  function initialsOf(name) {
+    return name ? name.slice(0, 2).toUpperCase() : '??';
+  }
+
+  // Renders a real avatar image when one exists, falling back to initials otherwise.
+  function avatarHtml(avatarUrl, username) {
+    if (avatarUrl) {
+      return `<img src="${avatarUrl}" alt="">`;
+    }
+    return initialsOf(username);
+  }
+
+  function renderComment(c, blipId) {
+    const item = document.createElement('div');
+    item.className = 'comment-item';
+    item.dataset.commentId = c.id;
+    item.innerHTML = `
+      <div class="avatar" data-user-id="${c.user_id}"></div>
+      <div class="comment-body">
+        <span class="comment-handle clickable" data-user-id="${c.user_id}"></span>
+        <span class="comment-text"></span>
+        <div class="comment-meta">
+          <span class="comment-time"></span>
+          <button class="comment-reply-btn" data-action="reply">Reply</button>
+        </div>
+        <div class="comment-replies"></div>
+      </div>`;
+    item.querySelector('.avatar').innerHTML = avatarHtml(c.avatar, c.username);
+    item.querySelector('.comment-handle').textContent = c.username;
+    item.querySelector('.comment-text').textContent = c.text;
+    item.querySelector('.comment-time').textContent = timeAgo(c.created_at);
+
+    item.querySelectorAll('[data-user-id]').forEach(el => {
+      el.addEventListener('click', () => openProfileModal(el.dataset.userId));
+    });
+
+    item.querySelector('[data-action="reply"]').addEventListener('click', () => {
+      item.dispatchEvent(new CustomEvent('reply-requested', {
+        bubbles: true,
+        detail: { commentId: c.id, username: c.username }
+      }));
+    });
+
+    return item;
+  }
+
+  function renderBlip(b) {
+    const blip = document.createElement('div');
+    blip.className = 'blip';
+    blip.dataset.blipId = b.id;
+
+    blip.innerHTML = `
+      <div class="blip-head">
+        <div class="avatar" data-user-id="${b.user_id}">${avatarHtml(b.avatar, b.username)}</div>
+        <div class="blip-head-text">
+          <span class="blip-handle clickable" data-user-id="${b.user_id}"></span>
+          <span class="blip-time"></span>
+        </div>
+      </div>
+      <div class="blip-text"></div>
+      <div class="blip-images"></div>
+      <div class="blip-actions">
+        <button class="${b.liked_by_me ? 'liked' : ''}" data-action="like">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="${b.liked_by_me ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 4.6c-1.8-1.8-4.7-1.8-6.5 0L12 6.9l-2.3-2.3c-1.8-1.8-4.7-1.8-6.5 0-1.8 1.8-1.8 4.7 0 6.5L12 20.8l8.8-8.7c1.8-1.8 1.8-4.7 0-6.5z"/></svg>
+          <span class="count">${b.like_count}</span>
+        </button>
+        <button data-action="comment">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          <span class="count">${b.comment_count}</span>
+        </button>
+        <button class="${b.reblipped_by_me ? 'reblipped' : ''}" data-action="reblip">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+          <span class="count">${b.reblip_count}</span>
+        </button>
+        <div class="spacer"></div>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;color:var(--muted);cursor:pointer;"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+      </div>
+      <div class="comment-panel">
+        <div class="comment-list"></div>
+        <div class="reply-target-chip">
+          <span class="reply-target-label"></span>
+          <button type="button" title="cancel reply">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+        <div class="comment-compose">
+          <div class="avatar">${avatarHtml(me && me.avatar_url, me && me.username)}</div>
+          <input type="text" class="comment-input" placeholder="write a comment...">
+          <button class="comment-send" disabled>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          </button>
+        </div>
+      </div>`;
+
+    blip.querySelector('.blip-handle').textContent = b.username;
+    blip.querySelector('.blip-time').textContent = timeAgo(b.created_at);
+    blip.querySelector('.blip-text').textContent = b.text;
+    if (!b.text) blip.querySelector('.blip-text').style.display = 'none';
+
+    blip.querySelectorAll('.blip-head [data-user-id]').forEach(el => {
+      el.addEventListener('click', () => openProfileModal(el.dataset.userId));
+    });
+
+    const images = b.images || [];
+    const imagesEl = blip.querySelector('.blip-images');
+    if (images.length > 0) {
+      imagesEl.classList.add('count-' + Math.min(images.length, 3));
+      images.forEach((src, i) => {
+        const img = document.createElement('img');
+        img.src = src;
+        img.alt = 'blip image';
+        img.loading = 'lazy';
+        img.addEventListener('click', () => openLightbox(images, i));
+        imagesEl.appendChild(img);
+      });
+    } else {
+      imagesEl.style.display = 'none';
+    }
+
+    const list = blip.querySelector('.comment-list');
+    const commentsById = {};
+    (b.comments || []).forEach(c => {
+      const el = renderComment(c, b.id);
+      commentsById[c.id] = el;
+      if (c.parent_id && commentsById[c.parent_id]) {
+        commentsById[c.parent_id].querySelector('.comment-replies').appendChild(el);
+      } else {
+        list.appendChild(el);
+      }
+    });
+
+    wireBlip(blip);
+    return blip;
+  }
+
+  function wireBlip(blip) {
+    const blipId = Number(blip.dataset.blipId);
+    const likeBtn = blip.querySelector('[data-action="like"]');
+    const reblipBtn = blip.querySelector('[data-action="reblip"]');
+    const commentBtn = blip.querySelector('[data-action="comment"]');
+    const panel = blip.querySelector('.comment-panel');
+    const input = blip.querySelector('.comment-input');
+    const sendBtn = blip.querySelector('.comment-send');
+    const list = blip.querySelector('.comment-list');
+    const commentCount = commentBtn.querySelector('.count');
+    const replyChip = blip.querySelector('.reply-target-chip');
+    const replyChipLabel = replyChip.querySelector('.reply-target-label');
+
+    let replyTarget = null; // { commentId, username }
+
+    function setReplyTarget(commentId, username) {
+      replyTarget = { commentId, username };
+      replyChipLabel.textContent = 'Replying to @' + username;
+      replyChip.classList.add('show');
+      input.placeholder = 'write a reply...';
+      input.focus();
+    }
+
+    function clearReplyTarget() {
+      replyTarget = null;
+      replyChip.classList.remove('show');
+      input.placeholder = 'write a comment...';
+    }
+
+    blip.addEventListener('reply-requested', e => {
+      panel.classList.add('open');
+      commentBtn.classList.add('commented');
+      setReplyTarget(e.detail.commentId, e.detail.username);
+    });
+
+    replyChip.querySelector('button').addEventListener('click', clearReplyTarget);
+
+    commentBtn.addEventListener('click', () => {
+      panel.classList.toggle('open');
+      commentBtn.classList.toggle('commented', panel.classList.contains('open'));
+      if (panel.classList.contains('open')) input.focus();
+    });
+
+    input.addEventListener('input', () => {
+      sendBtn.disabled = input.value.trim().length === 0;
+    });
+
+    async function postComment() {
+      const val = input.value.trim();
+      if (!val) return;
+      if (val.length > 500) return; // matches blip_comments.text limits enforced server-side too, if any
+      sendBtn.disabled = true;
+      try {
+        const parentId = replyTarget ? replyTarget.commentId : null;
+
+        // A reply must point at a comment that actually belongs to this blip.
+        if (parentId) {
+          const { data: parentRow } = await supabaseClient
+            .from('blip_comments')
+            .select('id')
+            .eq('id', parentId)
+            .eq('blip_id', blipId)
+            .maybeSingle();
+          if (!parentRow) { sendBtn.disabled = false; return; }
+        }
+
+        const { data: inserted, error } = await supabaseClient
+          .from('blip_comments')
+          .insert({ blip_id: blipId, parent_id: parentId, user_id: me.id, text: val })
+          .select('id, created_at')
+          .single();
+
+        if (!error && inserted) {
+          const { count } = await supabaseClient
+            .from('blip_comments')
+            .select('*', { count: 'exact', head: true })
+            .eq('blip_id', blipId);
+
+          const newComment = renderComment({
+            id: inserted.id,
+            user_id: me.id,
+            username: me.username,
+            avatar: me.avatar_url,
+            text: val,
+            parent_id: parentId,
+            created_at: inserted.created_at
+          }, blipId);
+
+          if (parentId) {
+            const parentEl = list.querySelector(`.comment-item[data-comment-id="${parentId}"]`);
+            (parentEl ? parentEl.querySelector('.comment-replies') : list).appendChild(newComment);
+          } else {
+            list.appendChild(newComment);
+          }
+          commentCount.textContent = String(count || 0);
+          input.value = '';
+          clearReplyTarget();
+        }
+      } catch (e) { /* silent fail, network hiccup */ }
+      sendBtn.disabled = input.value.trim().length === 0;
+    }
+
+    sendBtn.addEventListener('click', postComment);
+    input.addEventListener('keydown', e => { if (e.key === 'Enter') postComment(); });
+
+    likeBtn.addEventListener('click', async () => {
+      const countEl = likeBtn.querySelector('.count');
+      likeBtn.disabled = true;
+      try {
+        const { data: existing } = await supabaseClient
+          .from('blip_likes')
+          .select('id')
+          .eq('blip_id', blipId)
+          .eq('user_id', me.id)
+          .maybeSingle();
+
+        let liked;
+        if (existing) {
+          await supabaseClient.from('blip_likes').delete().eq('id', existing.id);
+          liked = false;
+        } else {
+          await supabaseClient.from('blip_likes').insert({ blip_id: blipId, user_id: me.id });
+          liked = true;
+        }
+
+        const { count } = await supabaseClient
+          .from('blip_likes')
+          .select('*', { count: 'exact', head: true })
+          .eq('blip_id', blipId);
+
+        likeBtn.classList.toggle('liked', liked);
+        likeBtn.querySelector('svg').setAttribute('fill', liked ? 'currentColor' : 'none');
+        countEl.textContent = String(count || 0);
+      } catch (e) { /* silent fail */ }
+      likeBtn.disabled = false;
+    });
+
+    reblipBtn.addEventListener('click', async () => {
+      const countEl = reblipBtn.querySelector('.count');
+      reblipBtn.disabled = true;
+      try {
+        const { data: existing } = await supabaseClient
+          .from('blip_reblips')
+          .select('id')
+          .eq('blip_id', blipId)
+          .eq('user_id', me.id)
+          .maybeSingle();
+
+        let reblipped;
+        if (existing) {
+          await supabaseClient.from('blip_reblips').delete().eq('id', existing.id);
+          reblipped = false;
+        } else {
+          await supabaseClient.from('blip_reblips').insert({ blip_id: blipId, user_id: me.id });
+          reblipped = true;
+        }
+
+        const { count } = await supabaseClient
+          .from('blip_reblips')
+          .select('*', { count: 'exact', head: true })
+          .eq('blip_id', blipId);
+
+        reblipBtn.classList.toggle('reblipped', reblipped);
+        countEl.textContent = String(count || 0);
+      } catch (e) { /* silent fail */ }
+      reblipBtn.disabled = false;
+    });
+  }
+
+  function skeletonHtml() {
+    let html = '';
+    for (let i = 0; i < 3; i++) {
+      html += `
+        <div class="blip-skeleton">
+          <div class="sk-row">
+            <div class="sk-avatar sk-line"></div>
+            <div>
+              <div class="sk-line sk-name"></div>
+              <div class="sk-line sk-time"></div>
+            </div>
+          </div>
+          <div class="sk-line sk-text1"></div>
+          <div class="sk-line sk-text2"></div>
+        </div>`;
+    }
+    return html;
+  }
+
+  async function loadFeed() {
+    feed.innerHTML = skeletonHtml();
+
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    if (!session) {
+      feed.innerHTML = '<p style="text-align:center;color:var(--muted);padding:40px 0;">Not logged in. <a href="../login/login.html">Go to login</a></p>';
+      return;
+    }
+
+    // Load my own profile (used for the composer avatar, comment avatar, etc).
+    const { data: myProfile, error: myProfileError } = await supabaseClient
+      .from('profiles')
+      .select('id, username, avatar_url')
+      .eq('id', session.user.id)
+      .single();
+
+    if (myProfileError || !myProfile) {
+      feed.innerHTML = '<p style="text-align:center;color:var(--muted);padding:40px 0;">Could not load your profile.</p>';
+      return;
+    }
+    me = myProfile;
+
+    // set "you" avatars in the composer bar
+    document.querySelectorAll('.top-bar .avatar, .dialog-who .avatar').forEach(el => {
+      el.innerHTML = avatarHtml(me.avatar_url, me.username);
+    });
+
+    try {
+      const { data: blipsRaw, error } = await supabaseClient
+        .from('blips')
+        .select('id, text, created_at, user_id, profiles(username, avatar_url)')
+        .order('created_at', { ascending: false })
+        .limit(50);
+
+      if (error) {
+        feed.innerHTML = `<p style="text-align:center;color:var(--muted);padding:40px 0;">${error.message || 'Could not load feed'}</p>`;
+        return;
+      }
+
+      if (!blipsRaw || blipsRaw.length === 0) {
+        feed.innerHTML = '<p style="text-align:center;color:var(--muted);padding:40px 0;">No blips yet. Be the first to post!</p>';
+        return;
+      }
+
+      const blipIds = blipsRaw.map(b => b.id);
+
+      // Batch-fetch everything else needed for the whole feed in parallel,
+      // instead of one round trip per blip.
+      const [likesRes, reblipsRes, commentsRes, imagesRes] = await Promise.all([
+        supabaseClient.from('blip_likes').select('blip_id, user_id').in('blip_id', blipIds),
+        supabaseClient.from('blip_reblips').select('blip_id, user_id').in('blip_id', blipIds),
+        supabaseClient.from('blip_comments')
+          .select('id, blip_id, parent_id, text, created_at, user_id, profiles(username, avatar_url)')
+          .in('blip_id', blipIds)
+          .order('created_at', { ascending: true }),
+        supabaseClient.from('blip_images').select('blip_id, image_path, position').in('blip_id', blipIds).order('position', { ascending: true })
+      ]);
+
+      const likeCounts = {}, likedByMe = new Set();
+      (likesRes.data || []).forEach(l => {
+        likeCounts[l.blip_id] = (likeCounts[l.blip_id] || 0) + 1;
+        if (l.user_id === me.id) likedByMe.add(l.blip_id);
+      });
+
+      const reblipCounts = {}, reblippedByMe = new Set();
+      (reblipsRes.data || []).forEach(r => {
+        reblipCounts[r.blip_id] = (reblipCounts[r.blip_id] || 0) + 1;
+        if (r.user_id === me.id) reblippedByMe.add(r.blip_id);
+      });
+
+      const commentsByBlip = {};
+      (commentsRes.data || []).forEach(c => {
+        const bucket = commentsByBlip[c.blip_id] || (commentsByBlip[c.blip_id] = []);
+        bucket.push({
+          id: c.id,
+          parent_id: c.parent_id,
+          text: c.text,
+          created_at: c.created_at,
+          user_id: c.user_id,
+          username: c.profiles ? c.profiles.username : 'unknown',
+          avatar: c.profiles ? c.profiles.avatar_url : null
+        });
+      });
+
+      const imagesByBlip = {};
+      (imagesRes.data || []).forEach(img => {
+        const bucket = imagesByBlip[img.blip_id] || (imagesByBlip[img.blip_id] = []);
+        // image_path is stored as the full public URL at upload time (see submitBlip).
+        bucket.push(img.image_path);
+      });
+
+      const commentCounts = {};
+      Object.keys(commentsByBlip).forEach(bid => { commentCounts[bid] = commentsByBlip[bid].length; });
+
+      feed.innerHTML = '';
+      blipsRaw.forEach(b => {
+        feed.appendChild(renderBlip({
+          id: b.id,
+          text: b.text,
+          created_at: b.created_at,
+          user_id: b.user_id,
+          username: b.profiles ? b.profiles.username : 'unknown',
+          avatar: b.profiles ? b.profiles.avatar_url : null,
+          like_count: likeCounts[b.id] || 0,
+          reblip_count: reblipCounts[b.id] || 0,
+          comment_count: commentCounts[b.id] || 0,
+          liked_by_me: likedByMe.has(b.id),
+          reblipped_by_me: reblippedByMe.has(b.id),
+          comments: commentsByBlip[b.id] || [],
+          images: imagesByBlip[b.id] || []
+        }));
+      });
+    } catch (e) {
+      feed.innerHTML = '<p style="text-align:center;color:var(--muted);padding:40px 0;">Network error.</p>';
+    }
+  }
+
+  // ----- New Blip dialog -----
+  function openDialog() {
+    dialogBackdrop.classList.add('open');
+    dialogTextarea.focus();
+  }
+
+  function clearImages() {
+    selectedImages = [];
+    imagePreviews.innerHTML = '';
+    imageInput.value = '';
+  }
+
+  function closeDialog() {
+    dialogBackdrop.classList.remove('open');
+    dialogTextarea.value = '';
+    clearImages();
+    updateSubmitState();
+  }
+
+  function updateSubmitState() {
+    submitBlipBtn.disabled = dialogTextarea.value.trim().length === 0 && selectedImages.length === 0;
+  }
+
+  function renderImagePreviews() {
+    imagePreviews.innerHTML = '';
+    selectedImages.forEach((file, i) => {
+      const wrap = document.createElement('div');
+      wrap.className = 'image-preview';
+      const img = document.createElement('img');
+      img.src = URL.createObjectURL(file);
+      const removeBtn = document.createElement('button');
+      removeBtn.className = 'remove-image';
+      removeBtn.textContent = '✕';
+      removeBtn.addEventListener('click', () => {
+        selectedImages.splice(i, 1);
+        renderImagePreviews();
+        updateSubmitState();
+      });
+      wrap.appendChild(img);
+      wrap.appendChild(removeBtn);
+      imagePreviews.appendChild(wrap);
+    });
+  }
+
+  imageInput.addEventListener('change', () => {
+    const incoming = Array.from(imageInput.files || []);
+    const room = MAX_IMAGES - selectedImages.length;
+    if (room <= 0) {
+      imageInput.value = '';
+      return;
+    }
+    selectedImages = selectedImages.concat(incoming.slice(0, room));
+    imageInput.value = ''; // allow re-selecting the same file later
+    renderImagePreviews();
+    updateSubmitState();
+  });
+
+  document.getElementById('openDialogBtn').addEventListener('click', openDialog);
+  document.getElementById('openDialogBtn2').addEventListener('click', openDialog);
+  document.getElementById('dialogCloseBtn').addEventListener('click', closeDialog);
+  dialogBackdrop.addEventListener('click', e => { if (e.target === dialogBackdrop) closeDialog(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && dialogBackdrop.classList.contains('open')) closeDialog(); });
+  dialogTextarea.addEventListener('input', updateSubmitState);
+
+  const ALLOWED_IMAGE_MIME = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/gif': 'gif', 'image/webp': 'webp' };
+  const MAX_IMAGE_BYTES = 8 * 1024 * 1024; // 8MB per image, matches old server-side limit
+
+  async function submitBlip() {
+    const text = dialogTextarea.value.trim();
+    if (!text && selectedImages.length === 0) return;
+    if (text.length > 500) return;
+
+    submitBlipBtn.disabled = true;
+    try {
+      // 1. Create the blip row first so we have a blip_id to attach images to.
+      const { data: newBlip, error: blipError } = await supabaseClient
+        .from('blips')
+        .insert({ user_id: me.id, text })
+        .select('id')
+        .single();
+
+      if (blipError || !newBlip) {
+        submitBlipBtn.disabled = false;
+        return;
+      }
+      const blipId = newBlip.id;
+
+      // 2. Upload any staged images to Storage, then record them in blip_images.
+      if (selectedImages.length > 0) {
+        for (let i = 0; i < selectedImages.length; i++) {
+          const file = selectedImages[i];
+          const ext = ALLOWED_IMAGE_MIME[file.type];
+          if (!ext) continue; // skip anything that isn't jpg/png/gif/webp
+          if (file.size > MAX_IMAGE_BYTES) continue;
+
+          const path = `${me.id}/${blipId}-${i}-${Date.now()}.${ext}`;
+          const { error: uploadError } = await supabaseClient
+            .storage
+            .from(BLIP_IMAGES_BUCKET)
+            .upload(path, file, { contentType: file.type });
+
+          if (uploadError) continue; // best-effort: skip this image, keep going
+
+          const { data: publicUrlData } = supabaseClient
+            .storage
+            .from(BLIP_IMAGES_BUCKET)
+            .getPublicUrl(path);
+
+          await supabaseClient.from('blip_images').insert({
+            blip_id: blipId,
+            image_path: publicUrlData.publicUrl,
+            position: i
+          });
+        }
+      }
+
+      closeDialog();
+      loadFeed(); // simplest correct way to show the new blip with real id/counts
+    } catch (e) { /* silent fail */ }
+    submitBlipBtn.disabled = false;
+  }
+
+  submitBlipBtn.addEventListener('click', submitBlip);
+
+  loadFeed();
+</script>
+
+
+</body>
+</html>

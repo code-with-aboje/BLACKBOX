@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chats</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #000000;
+    --card: #0d0f0e;
+    --card-hover: #121412;
+    --line: rgba(255,255,255,0.08);
+    --phosphor: #00ff7f;
+    --text: #f2f4f3;
+    --muted: #8a938e;
+    --danger: #ff4d6d;
+    --avatar-size: 44px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'IBM Plex Sans', sans-serif;
+    height: 100%;
+    overscroll-behavior: none;
+  }
+
+  body {
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  .avatar {
+    width: var(--avatar-size); height: var(--avatar-size);
+    border-radius: 50%;
+    background: linear-gradient(135deg, #163d29, #0a1611);
+    border: 1px solid var(--line);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--phosphor);
+    font-family: 'Space Mono', monospace;
+    font-size: 0.72em; font-weight: 700;
+    flex-shrink: 0;
+    overflow: hidden;
+  }
+  .avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+  /* ===== LEFT: conversation list ===== */
+  .list-pane {
+    width: 340px;
+    min-width: 280px;
+    border-right: 1px solid var(--line);
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+
+  .list-header {
+    padding: 16px;
+    border-bottom: 1px solid var(--line);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .list-header h1 {
+    font-family: 'Space Mono', monospace;
+    font-size: 1em;
+    letter-spacing: 1px;
+    color: var(--text);
+  }
+  .new-chat-btn {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: rgba(0,255,127,0.1);
+    border: 1px solid rgba(0,255,127,0.35);
+    color: var(--phosphor);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+  }
+  .new-chat-btn:hover { background: rgba(0,255,127,0.18); }
+  .new-chat-btn svg { width: 16px; height: 16px; }
+
+  .tabs {
+    display: flex;
+    border-bottom: 1px solid var(--line);
+  }
+  .tab-btn {
+    flex: 1;
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.78em;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    padding: 12px 4px;
+    cursor: pointer;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+  .tab-btn.active { color: var(--phosphor); }
+  .tab-btn.active::after {
+    content: '';
+    position: absolute; bottom: -1px; left: 12px; right: 12px; height: 2px;
+    background: var(--phosphor);
+  }
+  .tab-badge {
+    background: var(--danger);
+    color: #fff;
+    font-size: 0.68em;
+    font-weight: 700;
+    border-radius: 999px;
+    padding: 1px 6px;
+    min-width: 16px;
+    text-align: center;
+  }
+
+  .conv-list {
+    flex: 1;
+    overflow-y: auto;
+  }
+
+  .conv-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    cursor: pointer;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+  .conv-item:hover { background: var(--card-hover); }
+  .conv-item.selected { background: var(--card); }
+
+  .conv-info { flex: 1; min-width: 0; }
+  .conv-name-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px;
+  }
+  .conv-name {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.82em;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .conv-time {
+    font-size: 0.68em;
+    color: var(--muted);
+    flex-shrink: 0;
+  }
+  .conv-preview {
+    font-size: 0.78em;
+    color: var(--muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-top: 2px;
+  }
+  .conv-preview.pending { color: var(--phosphor); font-style: italic; }
+
+  .empty-state, .loading-state {
+    text-align: center;
+    color: var(--muted);
+    font-size: 0.85em;
+    padding: 40px 20px;
+  }
+
+  /* ===== RIGHT: thread ===== */
+  .thread-pane {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+
+  .thread-empty {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--muted);
+    font-size: 0.9em;
+    text-align: center;
+    padding: 20px;
+  }
+
+  .thread-header {
+    display: none;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--line);
+    background: rgba(13,15,14,0.9);
+  }
+  .thread-back {
+    display: none;
+    background: none; border: none; color: var(--text); cursor: pointer;
+    width: 28px; height: 28px; align-items: center; justify-content: center;
+  }
+  .thread-back svg { width: 20px; height: 20px; }
+  .thread-header .avatar { width: 36px; height: 36px; font-size: 0.65em; }
+  .thread-header-name {
+    font-family: 'Space Mono', monospace;
+    font-weight: 700;
+    font-size: 0.9em;
+  }
+
+  .thread-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .msg-row { display: flex; }
+  .msg-row.me { justify-content: flex-end; }
+  .msg-bubble {
+    max-width: 65%;
+    padding: 10px 14px;
+    border-radius: 16px;
+    font-size: 0.88em;
+    line-height: 1.4;
+    word-break: break-word;
+  }
+  .msg-row:not(.me) .msg-bubble {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-bottom-left-radius: 4px;
+  }
+  .msg-row.me .msg-bubble {
+    background: rgba(0,255,127,0.12);
+    border: 1px solid rgba(0,255,127,0.3);
+    border-bottom-right-radius: 4px;
+  }
+  .msg-time {
+    display: block;
+    margin-top: 4px;
+    font-size: 0.68em;
+    color: var(--muted);
+  }
+
+  .request-banner {
+    margin: 14px 16px 0;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 12px 14px;
+    font-size: 0.82em;
+    color: var(--muted);
+  }
+  .request-banner b { color: var(--text); }
+  .request-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+  }
+  .request-actions button {
+    flex: 1;
+    padding: 8px;
+    border-radius: 8px;
+    font-size: 0.78em;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    cursor: pointer;
+    font-family: 'IBM Plex Sans', sans-serif;
+  }
+  .accept-btn { background: var(--phosphor); border: none; color: #05130b; }
+  .accept-btn:hover { filter: brightness(1.08); }
+  .decline-btn { background: none; border: 1px solid var(--line); color: var(--muted); }
+  .decline-btn:hover { border-color: var(--danger); color: var(--danger); }
+
+  .waiting-note {
+    text-align: center;
+    color: var(--muted);
+    font-size: 0.78em;
+    padding: 10px;
+    font-style: italic;
+  }
+
+  .composer {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 16px;
+    border-top: 1px solid var(--line);
+  }
+  .composer input {
+    flex: 1;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 10px 16px;
+    color: var(--text);
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.88em;
+  }
+  .composer input:focus { outline: none; border-color: rgba(0,255,127,0.4); }
+  .composer input:disabled { opacity: 0.4; }
+  .send-btn {
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    background: var(--phosphor);
+    border: none;
+    color: #05130b;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  .send-btn:disabled { opacity: 0.35; cursor: default; }
+  .send-btn svg { width: 17px; height: 17px; }
+
+  /* ===== New chat search overlay ===== */
+  .search-backdrop {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.7);
+    display: none;
+    align-items: flex-start;
+    justify-content: center;
+    padding-top: 80px;
+    z-index: 200;
+  }
+  .search-backdrop.open { display: flex; }
+  .search-modal {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    width: 400px;
+    max-width: 92vw;
+    max-height: 70vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .search-modal-head {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--line);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .search-modal-head input {
+    flex: 1;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 8px 12px;
+    color: var(--text);
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.85em;
+  }
+  .search-modal-head input:focus { outline: none; border-color: rgba(0,255,127,0.4); }
+  .search-modal-close {
+    background: none; border: none; color: var(--muted); cursor: pointer;
+    width: 26px; height: 26px; display: flex; align-items: center; justify-content: center;
+  }
+  .search-modal-close svg { width: 18px; height: 18px; }
+  .search-results { overflow-y: auto; }
+  .search-result-row {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 16px; cursor: pointer;
+  }
+  .search-result-row:hover { background: var(--card-hover); }
+  .search-result-row .name { font-family: 'Space Mono', monospace; font-size: 0.85em; font-weight: 700; }
+
+  @media (max-width: 720px) {
+    .list-pane { width: 100%; min-width: 0; border-right: none; }
+    body.thread-open .list-pane { display: none; }
+    .thread-pane { display: none; }
+    body.thread-open .thread-pane { display: flex; }
+    .thread-header { display: flex; }
+    .thread-back { display: flex; }
+  }
+</style>
+</head>
+<body>
+
+  <div class="list-pane">
+    <div class="list-header">
+      <h1>MESSAGES</h1>
+      <button class="new-chat-btn" id="newChatBtn" title="New message">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      </button>
+    </div>
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="chats">Chats</button>
+      <button class="tab-btn" data-tab="received">Requests <span class="tab-badge" id="receivedBadge" style="display:none;">0</span></button>
+      <button class="tab-btn" data-tab="sent">Sent</button>
+    </div>
+    <div class="conv-list" id="convList">
+      <div class="loading-state">Loading...</div>
+    </div>
+  </div>
+
+  <div class="thread-pane" id="threadPane">
+    <div class="thread-empty" id="threadEmpty">Pick a chat, or start a new one.</div>
+  </div>
+
+  <div class="search-backdrop" id="searchBackdrop">
+    <div class="search-modal">
+      <div class="search-modal-head">
+        <input type="text" id="searchInput" placeholder="Search for someone to message...">
+        <button class="search-modal-close" id="searchCloseBtn">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="search-results" id="searchResults"></div>
+    </div>
+  </div>
+
+<script>
+  const token = localStorage.getItem('bb_token');
+  const userRaw = localStorage.getItem('bb_user');
+  const me = userRaw ? JSON.parse(userRaw) : null;
+
+  const convList = document.getElementById('convList');
+  const threadPane = document.getElementById('threadPane');
+  const receivedBadge = document.getElementById('receivedBadge');
+
+  let activeTab = 'chats';
+  let activeConversationId = null;
+  let cachedLists = { chats: [], requests_received: [], requests_sent: [] };
+  let pollTimer = null;
+
+  function initialsOf(name) { return name ? name.slice(0, 2).toUpperCase() : '??'; }
+  function avatarHtml(avatarData, username) {
+    return avatarData ? `<img src="${avatarData}" alt="">` : initialsOf(username);
+  }
+
+  function timeAgo(dateStr) {
+    // DB stores timestamps in UTC — parse explicitly as UTC so the display
+    // matches your local clock instead of drifting by your UTC offset.
+    const d = new Date(dateStr.replace(' ', 'T') + 'Z');
+    const secs = Math.floor((Date.now() - d.getTime()) / 1000);
+    if (secs < 5) return 'now';
+    if (secs < 60) return secs + 's';
+    if (secs < 3600) return Math.floor(secs / 60) + 'm';
+    if (secs < 86400) return Math.floor(secs / 3600) + 'h';
+    return Math.floor(secs / 86400) + 'd';
+  }
+
+  async function apiGet(url) {
+    const res = await fetch(url, { headers: { 'Authorization': 'Bearer ' + token } });
+    return res.json();
+  }
+  async function apiPost(url, body) {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify(body)
+    });
+    return res.json();
+  }
+
+  // ----- Tabs -----
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      activeTab = btn.dataset.tab;
+      renderList();
+    });
+  });
+
+  function renderList() {
+    const items = cachedLists[activeTab === 'chats' ? 'chats' : activeTab === 'received' ? 'requests_received' : 'requests_sent'];
+
+    if (!items || items.length === 0) {
+      const emptyMsgs = {
+        chats: 'No chats yet. Tap + to message someone.',
+        received: 'No message requests right now.',
+        sent: "You haven't sent any requests yet."
+      };
+      convList.innerHTML = `<div class="empty-state">${emptyMsgs[activeTab]}</div>`;
+      return;
+    }
+
+    convList.innerHTML = '';
+    items.forEach(item => {
+      const row = document.createElement('div');
+      row.className = 'conv-item' + (item.conversation_id === activeConversationId ? ' selected' : '');
+      const preview = item.last_message
+        ? (item.last_message.sender_id === me.id ? 'You: ' : '') + item.last_message.text
+        : (activeTab === 'sent' ? 'Waiting for reply...' : 'Say hi!');
+      const isPendingPreview = activeTab === 'sent' && item.status === 'pending';
+
+      row.innerHTML = `
+        <div class="avatar">${avatarHtml(item.other_user.avatar, item.other_user.username)}</div>
+        <div class="conv-info">
+          <div class="conv-name-row">
+            <span class="conv-name">${item.other_user.username}</span>
+            <span class="conv-time">${item.last_message ? timeAgo(item.last_message.created_at) : ''}</span>
+          </div>
+          <div class="conv-preview${isPendingPreview ? ' pending' : ''}">${preview}</div>
+        </div>
+      `;
+      row.addEventListener('click', () => openThread(item.conversation_id, item.other_user));
+      convList.appendChild(row);
+    });
+  }
+
+  async function loadLists() {
+    if (!token) {
+      convList.innerHTML = '<div class="empty-state">Not logged in.</div>';
+      return;
+    }
+    try {
+      const result = await apiGet('../api/chat_list.php');
+      if (!result.success) {
+        convList.innerHTML = `<div class="empty-state">${result.message || 'Could not load chats'}</div>`;
+        return;
+      }
+      cachedLists = result;
+      receivedBadge.style.display = result.requests_received.length > 0 ? 'inline-block' : 'none';
+      receivedBadge.textContent = result.requests_received.length;
+      renderList();
+    } catch (e) {
+      convList.innerHTML = '<div class="empty-state">Network error — is Apache/MySQL running?</div>';
+    }
+  }
+
+  // ----- Thread -----
+  async function openThread(conversationId, otherUser) {
+    activeConversationId = conversationId;
+    document.body.classList.add('thread-open');
+    renderList();
+
+    threadPane.innerHTML = `
+      <div class="thread-header">
+        <button class="thread-back" id="threadBackBtn">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+        <div class="avatar">${avatarHtml(otherUser.avatar, otherUser.username)}</div>
+        <span class="thread-header-name">${otherUser.username}</span>
+      </div>
+      <div class="thread-messages" id="threadMessages"><div class="loading-state">Loading...</div></div>
+      <div id="threadFooter"></div>
+    `;
+    document.getElementById('threadBackBtn').addEventListener('click', () => {
+      document.body.classList.remove('thread-open');
+      activeConversationId = null;
+      renderList();
+    });
+
+    await loadThreadMessages(conversationId);
+    clearInterval(pollTimer);
+    pollTimer = setInterval(() => loadThreadMessages(conversationId, true), 4000);
+  }
+
+  function renderMessages(messages) {
+    const box = document.getElementById('threadMessages');
+    if (!box) return;
+    if (messages.length === 0) {
+      box.innerHTML = '<div class="empty-state">No messages yet.</div>';
+      return;
+    }
+    box.innerHTML = messages.map(m => `
+      <div class="msg-row ${m.sender_id === me.id ? 'me' : ''}">
+        <div class="msg-bubble">${escapeHtml(m.text)}<span class="msg-time">${timeAgo(m.created_at)}</span></div>
+      </div>
+    `).join('');
+    box.scrollTop = box.scrollHeight;
+  }
+
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  function renderFooter(status, requestedBy, myAlreadySent) {
+    const footer = document.getElementById('threadFooter');
+    if (!footer) return;
+    const isRequester = requestedBy === me.id;
+
+    let bannerHtml = '';
+    if (status === 'pending' && !isRequester) {
+      bannerHtml = `
+        <div class="request-banner">
+          <b>Message request.</b> Accept to keep chatting, or decline to remove it.
+          <div class="request-actions">
+            <button class="accept-btn" id="acceptBtn">Accept</button>
+            <button class="decline-btn" id="declineBtn">Decline</button>
+          </div>
+        </div>`;
+    }
+
+    let composerHtml;
+    if (status === 'pending' && isRequester && myAlreadySent) {
+      composerHtml = `<div class="waiting-note">Message sent — waiting for them to accept before you can chat more.</div>`;
+    } else {
+      const placeholder = (status === 'pending' && isRequester) ? 'Send your one message...' : 'Message...';
+      composerHtml = `
+        <div class="composer">
+          <input type="text" id="msgInput" placeholder="${placeholder}" maxlength="1000">
+          <button class="send-btn" id="sendBtn" disabled>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          </button>
+        </div>`;
+    }
+
+    footer.innerHTML = bannerHtml + composerHtml;
+
+    const acceptBtn = document.getElementById('acceptBtn');
+    const declineBtn = document.getElementById('declineBtn');
+    if (acceptBtn) acceptBtn.addEventListener('click', () => respondToRequest('accept'));
+    if (declineBtn) declineBtn.addEventListener('click', () => respondToRequest('decline'));
+
+    const msgInput = document.getElementById('msgInput');
+    const sendBtn = document.getElementById('sendBtn');
+    if (msgInput && sendBtn) {
+      msgInput.addEventListener('input', () => { sendBtn.disabled = msgInput.value.trim().length === 0; });
+      msgInput.addEventListener('keydown', e => { if (e.key === 'Enter' && !sendBtn.disabled) sendMessage(); });
+      sendBtn.addEventListener('click', sendMessage);
+    }
+  }
+
+  async function loadThreadMessages(conversationId, silent) {
+    try {
+      const result = await apiGet('../api/chat_messages.php?conversation_id=' + conversationId);
+      if (conversationId !== activeConversationId) return; // user navigated away mid-fetch
+      if (!result.success) {
+        if (!silent) document.getElementById('threadMessages').innerHTML = `<div class="empty-state">${result.message || 'Could not load messages'}</div>`;
+        return;
+      }
+      renderMessages(result.messages);
+      const myAlreadySent = result.messages.some(m => m.sender_id === me.id);
+      renderFooter(result.status, result.requested_by, myAlreadySent);
+    } catch (e) {
+      if (!silent) document.getElementById('threadMessages').innerHTML = '<div class="empty-state">Network error.</div>';
+    }
+  }
+
+  async function sendMessage() {
+    const input = document.getElementById('msgInput');
+    const sendBtn = document.getElementById('sendBtn');
+    const text = input.value.trim();
+    if (!text || !activeConversationId) return;
+    sendBtn.disabled = true;
+    input.disabled = true;
+    try {
+      const result = await apiPost('../api/chat_send.php', { conversation_id: activeConversationId, text });
+      if (result.success) {
+        input.value = '';
+        await loadThreadMessages(activeConversationId);
+        loadLists();
+      } else {
+        alert(result.message || 'Could not send message');
+        input.disabled = false;
+        sendBtn.disabled = false;
+      }
+    } catch (e) {
+      input.disabled = false;
+      sendBtn.disabled = false;
+    }
+  }
+
+  async function respondToRequest(action) {
+    if (!activeConversationId) return;
+    try {
+      const result = await apiPost('../api/chat_respond.php', { conversation_id: activeConversationId, action });
+      if (result.success) {
+        if (action === 'decline') {
+          document.body.classList.remove('thread-open');
+          activeConversationId = null;
+          clearInterval(pollTimer);
+        } else {
+          await loadThreadMessages(activeConversationId);
+        }
+        loadLists();
+      }
+    } catch (e) { /* silent fail */ }
+  }
+
+  // ----- New chat search -----
+  const searchBackdrop = document.getElementById('searchBackdrop');
+  const searchInput = document.getElementById('searchInput');
+  const searchResults = document.getElementById('searchResults');
+  let searchDebounce = null;
+
+  document.getElementById('newChatBtn').addEventListener('click', () => {
+    searchBackdrop.classList.add('open');
+    searchInput.value = '';
+    searchResults.innerHTML = '';
+    searchInput.focus();
+  });
+  document.getElementById('searchCloseBtn').addEventListener('click', () => searchBackdrop.classList.remove('open'));
+  searchBackdrop.addEventListener('click', e => { if (e.target === searchBackdrop) searchBackdrop.classList.remove('open'); });
+
+  searchInput.addEventListener('input', () => {
+    clearTimeout(searchDebounce);
+    searchDebounce = setTimeout(runSearch, 250);
+  });
+
+  async function runSearch() {
+    const q = searchInput.value.trim();
+    searchResults.innerHTML = '<div class="loading-state">Searching...</div>';
+    try {
+      const result = await apiGet('../api/users_list.php?q=' + encodeURIComponent(q));
+      if (!result.success || result.users.length === 0) {
+        searchResults.innerHTML = '<div class="empty-state">No one found.</div>';
+        return;
+      }
+      searchResults.innerHTML = '';
+      result.users.forEach(u => {
+        const row = document.createElement('div');
+        row.className = 'search-result-row';
+        row.innerHTML = `<div class="avatar">${avatarHtml(u.avatar, u.username)}</div><span class="name">${u.username}</span>`;
+        row.addEventListener('click', async () => {
+          searchBackdrop.classList.remove('open');
+          const startResult = await apiPost('../api/chat_start.php', { user_id: u.id });
+          if (startResult.success) {
+            openThread(startResult.conversation_id, startResult.other_user);
+            loadLists();
+          }
+        });
+        searchResults.appendChild(row);
+      });
+    } catch (e) {
+      searchResults.innerHTML = '<div class="empty-state">Network error.</div>';
+    }
+  }
+
+  loadLists();
+</script>
+
+</body>
+</html>

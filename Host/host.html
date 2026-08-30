@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Uploads - BlackBox</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Inter', sans-serif;
+  }
+
+  body {
+    background: #000000;
+    color: #e0e0e0;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    padding: 30px 20px;
+  }
+
+  .form-wrap {
+    max-width: 480px;
+    width: 100%;
+  }
+
+  .form-header {
+    margin-bottom: 22px;
+  }
+
+  .form-header h1 {
+    color: #fff;
+    font-size: 1.3em;
+    font-weight: 800;
+  }
+
+  .form-header p {
+    color: #888;
+    font-size: 0.85em;
+    margin-top: 4px;
+  }
+
+  .card {
+    background: #0a0a0a;
+    border: 1px solid rgba(255,255,255,0.6);
+    border-radius: 16px;
+    padding: 22px;
+  }
+
+  .field-group {
+    margin-bottom: 18px;
+  }
+
+  .field-group:last-child { margin-bottom: 0; }
+
+  label.field-label {
+    display: block;
+    color: #ccc;
+    font-size: 0.78em;
+    font-weight: 600;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .icon-row {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+  }
+
+  .icon-picker {
+    width: 64px;
+    height: 64px;
+    flex-shrink: 0;
+    border-radius: 12px;
+    border: 1px dashed rgba(255,255,255,0.35);
+    background: #111111;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.6em;
+    color: #666;
+    cursor: pointer;
+    overflow: hidden;
+    position: relative;
+    transition: border-color 0.2s ease;
+  }
+  .icon-picker:hover { border-color: rgba(255,255,255,0.7); }
+  .icon-picker img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .icon-picker input[type="file"] {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+  }
+  .icon-remove {
+    display: none;
+    margin-top: 6px;
+    background: none;
+    border: none;
+    color: #ff6b6b;
+    font-size: 0.68em;
+    cursor: pointer;
+    text-align: center;
+    width: 64px;
+  }
+
+  input[type="text"], input[type="number"], textarea {
+    width: 100%;
+    background: #111111;
+    border: 1px solid rgba(255,255,255,0.25);
+    border-radius: 10px;
+    color: #fff;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.92em;
+    padding: 12px 14px;
+    transition: border-color 0.2s ease;
+  }
+
+  input[type="text"]:focus, input[type="number"]:focus, textarea:focus {
+    outline: none;
+    border-color: rgba(255,255,255,0.7);
+  }
+
+  textarea {
+    resize: vertical;
+    min-height: 80px;
+    line-height: 1.5;
+  }
+
+  .field-hint {
+    color: #666;
+    font-size: 0.72em;
+    margin-top: 6px;
+  }
+
+  .field-hint.over { color: #ff6b6b; }
+
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+
+  .price-input-wrap {
+    position: relative;
+  }
+
+  .price-input-wrap input {
+    padding-right: 62px;
+  }
+
+  .price-suffix {
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #777;
+    font-size: 0.78em;
+    font-weight: 600;
+    pointer-events: none;
+  }
+
+  .submit-btn {
+    width: 100%;
+    margin-top: 22px;
+    padding: 14px;
+    border: 1px solid #ffffff;
+    border-radius: 10px;
+    background: #ffffff;
+    color: #000000;
+    font-weight: 700;
+    font-size: 0.88em;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.25s ease;
+  }
+  .submit-btn:hover {
+    box-shadow: 0 4px 18px rgba(255,255,255,0.2);
+    transform: translateY(-1px);
+  }
+  .submit-btn:disabled {
+    opacity: 0.5;
+    cursor: default;
+    box-shadow: none;
+    transform: none;
+  }
+
+  .form-msg {
+    font-size: 0.8em;
+    margin-top: 12px;
+    text-align: center;
+  }
+  .form-msg.error { color: #ff6b6b; }
+  .form-msg.success { color: #7CFFB2; }
+
+  /* ===== REUSABLE LOADING OVERLAY ===== */
+  .loading-overlay {
+    position: fixed; inset: 0; background: rgba(0, 0, 0, 0.94);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    z-index: 9999; opacity: 0; pointer-events: none; transition: opacity 0.35s ease;
+  }
+  .loading-overlay.visible { opacity: 1; pointer-events: all; }
+  .loading-spinner {
+    width: 42px; height: 42px; border: 3px solid rgba(255, 255, 255, 0.15);
+    border-top-color: #ffffff; border-radius: 50%; animation: loadingSpin 0.8s linear infinite;
+  }
+  @keyframes loadingSpin { to { transform: rotate(360deg); } }
+  .loading-text {
+    margin-top: 20px; color: #aaa; font-family: 'Inter', sans-serif;
+    font-size: 0.9em; font-weight: 600; letter-spacing: 1px; text-align: center;
+  }
+  .loading-success-icon {
+    width: 42px; height: 42px; border-radius: 50%; border: 2px solid #ffffff;
+    display: none; align-items: center; justify-content: center;
+    animation: popIn 0.4s cubic-bezier(0.34,1.56,0.64,1);
+  }
+  .loading-success-icon svg { width: 22px; height: 22px; stroke: #ffffff; }
+  @keyframes popIn {
+    from { transform: scale(0.4); opacity: 0; }
+    to   { transform: scale(1); opacity: 1; }
+  }
+  /* ===== END REUSABLE LOADING OVERLAY ===== */
+
+  .go-to-market-btn {
+    display: none;
+    width: 100%;
+    margin-top: 14px;
+    padding: 12px;
+    border: 1px solid rgba(255,255,255,0.4);
+    border-radius: 10px;
+    background: transparent;
+    color: #ccc;
+    font-weight: 700;
+    font-size: 0.8em;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    cursor: pointer;
+  }
+  .go-to-market-btn:hover { border-color: #fff; color: #fff; }
+</style>
+</head>
+<body>
+
+<div class="form-wrap">
+  <div class="form-header">
+    <h1>Publish a Tool</h1>
+    <p>List something in the Market. Set your own price in tokens — you get paid when someone gets it.</p>
+  </div>
+
+  <div class="card">
+    <div class="field-group">
+      <label class="field-label">Icon &amp; Name</label>
+      <div class="icon-row">
+        <div>
+          <label class="icon-picker" id="iconPicker">
+            <span id="iconPlaceholder">🛠</span>
+            <img id="iconPreview" style="display:none;">
+            <input type="file" id="iconFileInput" accept="image/png,image/jpeg,image/gif,image/webp">
+          </label>
+          <button type="button" class="icon-remove" id="iconRemoveBtn">Remove</button>
+        </div>
+        <input type="text" id="nameInput" placeholder="Tool name" maxlength="100">
+      </div>
+      <div class="field-hint">Tap the square to pick an image, or leave it blank for the default icon.</div>
+    </div>
+
+    <div class="field-group">
+      <label class="field-label">Tool Link</label>
+      <input type="text" id="toolUrlInput" placeholder="https://your-tool-is-hosted-here.com">
+      <div class="field-hint">Where the tool actually lives. People are sent here when they hit Get.</div>
+    </div>
+
+    <div class="field-group">
+      <label class="field-label">Description</label>
+      <textarea id="descInput" placeholder="What does it do? Why should someone get it?" maxlength="500"></textarea>
+      <div class="field-hint" id="descCount">0/500</div>
+    </div>
+
+    <div class="two-col">
+      <div class="field-group">
+        <label class="field-label">Price</label>
+        <div class="price-input-wrap">
+          <input type="number" id="priceInput" min="0" step="1" value="0">
+          <span class="price-suffix">tokens</span>
+        </div>
+        <div class="field-hint">Set 0 for a free tool.</div>
+      </div>
+      <div class="field-group">
+        <label class="field-label">Version</label>
+        <input type="text" id="versionInput" placeholder="1.0" maxlength="20">
+      </div>
+    </div>
+
+    <div class="field-group">
+      <label class="field-label">Size <span style="text-transform:none;color:#555;">(optional)</span></label>
+      <input type="text" id="sizeInput" placeholder="e.g. 2.3 MB" maxlength="20">
+    </div>
+
+    <button class="submit-btn" id="submitBtn">Publish</button>
+    <button class="go-to-market-btn" id="goToMarketBtn">View in Market</button>
+    <div class="form-msg" id="formMsg"></div>
+  </div>
+</div>
+
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="loading-spinner" id="loadingSpinner"></div>
+  <div class="loading-success-icon" id="loadingSuccessIcon">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="20 6 9 17 4 12"/>
+    </svg>
+  </div>
+  <div class="loading-text" id="loadingText">Publishing...</div>
+</div>
+
+<script>
+  const token = localStorage.getItem('bb_token');
+
+  const nameInput = document.getElementById('nameInput');
+  const toolUrlInput = document.getElementById('toolUrlInput');
+  const descInput = document.getElementById('descInput');
+  const descCount = document.getElementById('descCount');
+  const priceInput = document.getElementById('priceInput');
+  const versionInput = document.getElementById('versionInput');
+  const sizeInput = document.getElementById('sizeInput');
+  const submitBtn = document.getElementById('submitBtn');
+  const goToMarketBtn = document.getElementById('goToMarketBtn');
+  const formMsg = document.getElementById('formMsg');
+
+  const iconFileInput = document.getElementById('iconFileInput');
+  const iconPreview = document.getElementById('iconPreview');
+  const iconPlaceholder = document.getElementById('iconPlaceholder');
+  const iconRemoveBtn = document.getElementById('iconRemoveBtn');
+  let selectedIconFile = null;
+
+  iconFileInput.addEventListener('change', () => {
+    const file = iconFileInput.files && iconFileInput.files[0];
+    if (!file) return;
+    if (file.size > 4 * 1024 * 1024) {
+      setMsg('Icon image must be 4MB or smaller.', 'error');
+      iconFileInput.value = '';
+      return;
+    }
+    selectedIconFile = file;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      iconPreview.src = e.target.result;
+      iconPreview.style.display = 'block';
+      iconPlaceholder.style.display = 'none';
+      iconRemoveBtn.style.display = 'block';
+    };
+    reader.readAsDataURL(file);
+  });
+
+  iconRemoveBtn.addEventListener('click', () => {
+    selectedIconFile = null;
+    iconFileInput.value = '';
+    iconPreview.style.display = 'none';
+    iconPlaceholder.style.display = 'block';
+    iconRemoveBtn.style.display = 'none';
+  });
+
+  function showLoadingOverlay(message = 'Loading...') {
+    const overlay = document.getElementById('loadingOverlay');
+    const text = document.getElementById('loadingText');
+    const spinner = document.getElementById('loadingSpinner');
+    const successIcon = document.getElementById('loadingSuccessIcon');
+    spinner.style.display = 'block';
+    successIcon.style.display = 'none';
+    if (text) text.textContent = message;
+    overlay.classList.add('visible');
+  }
+  function showLoadingSuccess(message = 'Success!') {
+    const spinner = document.getElementById('loadingSpinner');
+    const successIcon = document.getElementById('loadingSuccessIcon');
+    const text = document.getElementById('loadingText');
+    spinner.style.display = 'none';
+    successIcon.style.display = 'flex';
+    successIcon.style.animation = 'none';
+    void successIcon.offsetWidth;
+    successIcon.style.animation = '';
+    if (text) text.textContent = message;
+  }
+  function hideLoadingOverlay() {
+    document.getElementById('loadingOverlay').classList.remove('visible');
+  }
+
+  descInput.addEventListener('input', () => {
+    const len = descInput.value.length;
+    descCount.textContent = `${len}/500`;
+    descCount.classList.toggle('over', len > 500);
+  });
+
+  function setMsg(text, type) {
+    formMsg.textContent = text || '';
+    formMsg.className = 'form-msg' + (type ? ' ' + type : '');
+  }
+
+  submitBtn.addEventListener('click', async () => {
+    if (!token) {
+      setMsg('Not logged in.', 'error');
+      return;
+    }
+
+    const name = nameInput.value.trim();
+    const toolUrl = toolUrlInput.value.trim();
+    const description = descInput.value.trim();
+    const price = parseInt(priceInput.value, 10);
+    const version = versionInput.value.trim();
+    const sizeLabel = sizeInput.value.trim();
+
+    if (!name) { setMsg('Give your tool a name.', 'error'); nameInput.focus(); return; }
+    if (!toolUrl) { setMsg('Add the link to where your tool is hosted.', 'error'); toolUrlInput.focus(); return; }
+    if (!/^https?:\/\/.+/i.test(toolUrl)) { setMsg('Tool link needs to start with http:// or https://', 'error'); toolUrlInput.focus(); return; }
+    if (!description) { setMsg('Add a short description.', 'error'); descInput.focus(); return; }
+    if (isNaN(price) || price < 0) { setMsg('Price must be 0 or more.', 'error'); priceInput.focus(); return; }
+
+    submitBtn.disabled = true;
+    setMsg('');
+    showLoadingOverlay('Publishing...');
+
+    try {
+      const formData = new FormData();
+      formData.append('name', name);
+      formData.append('description', description);
+      formData.append('tool_url', toolUrl);
+      formData.append('price_tokens', price);
+      if (version) formData.append('version', version);
+      if (sizeLabel) formData.append('size_label', sizeLabel);
+      if (selectedIconFile) formData.append('icon_image', selectedIconFile);
+
+      const res = await fetch('../api/market_create.php', {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + token },
+        body: formData
+      });
+      const result = await res.json();
+
+      if (!result.success) {
+        hideLoadingOverlay();
+        setMsg(result.message || 'Could not publish tool.', 'error');
+        submitBtn.disabled = false;
+        return;
+      }
+
+      showLoadingSuccess('Published!');
+      setTimeout(() => {
+        hideLoadingOverlay();
+        setMsg('Your tool is live in the Market.', 'success');
+        submitBtn.disabled = false;
+        goToMarketBtn.style.display = 'block';
+
+        // reset the form for the next upload
+        nameInput.value = '';
+        toolUrlInput.value = '';
+        descInput.value = '';
+        descCount.textContent = '0/500';
+        priceInput.value = '0';
+        versionInput.value = '';
+        sizeInput.value = '';
+        selectedIconFile = null;
+        iconFileInput.value = '';
+        iconPreview.style.display = 'none';
+        iconPlaceholder.style.display = 'block';
+        iconRemoveBtn.style.display = 'none';
+      }, 900);
+
+    } catch (e) {
+      hideLoadingOverlay();
+      setMsg('Network error — is Apache/MySQL running?', 'error');
+      submitBtn.disabled = false;
+    }
+  });
+
+  goToMarketBtn.addEventListener('click', () => {
+    // Sidebar nav is CSS-radio driven in the parent document (homepage.html).
+    // Since we're same-origin, flip that radio to switch the visible panel to Market.
+    try {
+      const marketRadio = window.parent.document.getElementById('mod-market');
+      if (marketRadio) {
+        marketRadio.checked = true;
+        marketRadio.dispatchEvent(new Event('change'));
+      }
+    } catch (e) { /* if parent isn't reachable for some reason, just no-op */ }
+  });
+</script>
+
+</body>
+</html>

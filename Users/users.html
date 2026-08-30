@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Users</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #000000;
+    --card: #0d0f0e;
+    --card-hover: #121412;
+    --line: rgba(255,255,255,0.08);
+    --phosphor: #00ff7f;
+    --text: #f2f4f3;
+    --muted: #8a938e;
+    --danger: #ff4d6d;
+    --avatar-size: 48px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'IBM Plex Sans', sans-serif;
+    overscroll-behavior: none;
+  }
+
+  body {
+    padding: 16px;
+    padding-top: 82px;
+  }
+
+  /* ===== Fixed top bar (search) ===== */
+  .top-bar {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(13,15,14,0.9);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--line);
+    padding: 14px 16px;
+    z-index: 100;
+  }
+
+  .search-wrap {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 10px 16px;
+    transition: border-color 0.15s ease;
+  }
+  .search-wrap:focus-within { border-color: rgba(0,255,127,0.4); }
+  .search-wrap svg { width: 17px; height: 17px; color: var(--muted); flex-shrink: 0; }
+
+  .search-wrap input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--text);
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.9em;
+    min-width: 0;
+  }
+  .search-wrap input::placeholder { color: var(--muted); }
+
+  /* ===== User list ===== */
+  .list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .user-card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    padding: 16px 18px;
+    transition: background 0.15s ease;
+  }
+  .user-card:hover { background: var(--card-hover); }
+
+  .user-head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 10px;
+  }
+
+  .avatar {
+    width: var(--avatar-size); height: var(--avatar-size);
+    border-radius: 50%;
+    background: linear-gradient(135deg, #163d29, #0a1611);
+    border: 1px solid var(--line);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--phosphor);
+    font-family: 'Space Mono', monospace;
+    font-size: 0.85em;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  .user-info { min-width: 0; flex: 1; }
+
+  .user-name {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.9em;
+    font-weight: 700;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .role-badge {
+    display: inline-block;
+    padding: 1px 8px;
+    font-size: 0.68em;
+    letter-spacing: 0.5px;
+    font-family: 'Space Mono', monospace;
+    font-weight: 400;
+    border: 1px solid rgba(0,255,127,0.4);
+    border-radius: 10px;
+    color: var(--phosphor);
+    white-space: nowrap;
+  }
+
+  .user-followers-count {
+    font-size: 0.72em;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+  .user-followers-count b { color: var(--text); font-weight: 700; }
+
+  .user-about {
+    font-size: 0.87em;
+    line-height: 1.5;
+    color: var(--muted);
+    margin-bottom: 14px;
+  }
+  .user-about:empty::before {
+    content: 'No bio yet.';
+    font-style: italic;
+    opacity: 0.6;
+  }
+
+  .user-actions {
+    display: flex;
+    gap: 10px;
+  }
+
+  .action-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--line);
+    color: var(--text);
+    font-family: 'Space Mono', monospace;
+    font-size: 0.72em;
+    letter-spacing: 0.4px;
+    padding: 10px 12px;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  }
+  .action-btn svg { width: 15px; height: 15px; }
+  .action-btn:hover { border-color: rgba(0,255,127,0.3); }
+
+  .action-btn.followers-btn:hover { color: var(--phosphor); }
+
+  .action-btn.add-friend-btn.active {
+    background: var(--phosphor);
+    border-color: var(--phosphor);
+    color: #04150a;
+  }
+  .action-btn.add-friend-btn.active:hover { opacity: 0.9; }
+
+  .empty-state, .loading-state {
+    text-align: center;
+    color: var(--muted);
+    padding: 60px 20px;
+    font-size: 0.85em;
+  }
+
+  /* ===== Followers modal ===== */
+  .modal-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    -webkit-backdrop-filter: blur(2px);
+    backdrop-filter: blur(2px);
+    z-index: 200;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 60px 16px;
+    overflow-y: auto;
+  }
+  .modal-backdrop.open { display: flex; }
+
+  .modal {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    width: 100%;
+    max-width: 420px;
+    padding: 18px 18px 16px;
+  }
+
+  .modal-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+  }
+
+  .modal-title {
+    font-family: 'Space Mono', monospace;
+    font-weight: 700;
+    font-size: 0.85em;
+    letter-spacing: 0.5px;
+    color: var(--text);
+  }
+
+  .modal-close {
+    background: none;
+    border: none;
+    color: var(--muted);
+    cursor: pointer;
+    display: flex;
+    padding: 4px;
+  }
+  .modal-close:hover { color: var(--text); }
+  .modal-close svg { width: 18px; height: 18px; }
+
+  .follower-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 4px;
+  }
+  .follower-row .avatar { width: 34px; height: 34px; font-size: 0.65em; }
+  .follower-row .name { font-family: 'Space Mono', monospace; font-size: 0.82em; color: var(--text); }
+
+  @media (max-width: 480px) {
+    :root { --avatar-size: 46px; }
+    body { padding: 12px; padding-top: 78px; }
+    .user-card { padding: 14px 16px; border-radius: 20px; }
+  }
+</style>
+</head>
+<body>
+
+  <div class="top-bar">
+    <div class="search-wrap">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" id="searchInput" placeholder="search users...">
+    </div>
+  </div>
+
+  <div class="list" id="userList"></div>
+
+  <div class="modal-backdrop" id="followersBackdrop">
+    <div class="modal">
+      <div class="modal-head">
+        <span class="modal-title" id="followersTitle">FOLLOWERS</span>
+        <button class="modal-close" id="followersCloseBtn">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div id="followersList"></div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="profileViewBackdrop">
+    <div class="modal" style="text-align:center;">
+      <div class="modal-head">
+        <span class="modal-title">PROFILE</span>
+        <button class="modal-close" id="profileViewCloseBtn">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div id="profileViewBody" style="padding:8px 4px 16px;"></div>
+    </div>
+  </div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../supabase-client.js"></script>
+
+<script>
+  let myId = null; // filled in by loadUsers() from the session
+
+  const userList = document.getElementById('userList');
+  const searchInput = document.getElementById('searchInput');
+  const followersBackdrop = document.getElementById('followersBackdrop');
+  const followersList = document.getElementById('followersList');
+  const followersTitle = document.getElementById('followersTitle');
+
+  function initialsOf(name) {
+    return name ? name.slice(0, 2).toUpperCase() : '??';
+  }
+
+  // Follow/unfollow a user, returning the new state + updated follower count.
+  // NOTE: unlike Blip.html's follow flow, this page's old PHP endpoint never
+  // started a chat request on follow — keeping that same (narrower) behavior
+  // here so this matches what users_list/follow.php actually did.
+  async function toggleFollow(targetId) {
+    const { data: existing } = await supabaseClient
+      .from('follows')
+      .select('id')
+      .eq('follower_id', myId)
+      .eq('followed_id', targetId)
+      .maybeSingle();
+
+    let following;
+    if (existing) {
+      await supabaseClient.from('follows').delete().eq('id', existing.id);
+      following = false;
+    } else {
+      const { error } = await supabaseClient
+        .from('follows')
+        .insert({ follower_id: myId, followed_id: targetId });
+      if (error) return null;
+      following = true;
+    }
+
+    const { count } = await supabaseClient
+      .from('follows')
+      .select('*', { count: 'exact', head: true })
+      .eq('followed_id', targetId);
+
+    return { following, follower_count: count || 0 };
+  }
+
+  function renderUserCard(u) {
+    const card = document.createElement('div');
+    card.className = 'user-card';
+    card.dataset.userId = u.id;
+
+    card.innerHTML = `
+      <div class="user-head">
+        <div class="avatar"></div>
+        <div class="user-info">
+          <div class="user-name"><span class="uname-text"></span><span class="role-badge"></span></div>
+          <div class="user-followers-count"><b class="fcount"></b> followers</div>
+        </div>
+      </div>
+      <div class="user-about"></div>
+      <div class="user-actions">
+        <button class="action-btn followers-btn" data-action="followers">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          Followers
+        </button>
+        <button class="action-btn add-friend-btn" data-action="follow">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+          <span class="btn-label"></span>
+        </button>
+      </div>
+    `;
+
+    const avatarEl = card.querySelector('.avatar');
+    if (u.avatar_url) {
+      avatarEl.innerHTML = `<img src="${u.avatar_url}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;">`;
+    } else {
+      avatarEl.textContent = initialsOf(u.username);
+    }
+    card.querySelector('.uname-text').textContent = u.username;
+    card.querySelector('.fcount').textContent = u.follower_count;
+    card.querySelector('.user-about').textContent = u.about || '';
+
+    const roleBadge = card.querySelector('.role-badge');
+    if (u.role) {
+      roleBadge.textContent = u.role;
+    } else {
+      roleBadge.remove();
+    }
+
+    const followBtn = card.querySelector('.add-friend-btn');
+    const label = followBtn.querySelector('.btn-label');
+
+    function paintFollowState(following) {
+      followBtn.classList.toggle('active', following);
+      label.textContent = following ? 'Following' : 'Add Friend';
+    }
+    paintFollowState(u.followed_by_me);
+
+    followBtn.addEventListener('click', async () => {
+      followBtn.disabled = true;
+      try {
+        const result = await toggleFollow(u.id);
+        if (result) {
+          u.followed_by_me = result.following;
+          paintFollowState(result.following);
+          card.querySelector('.fcount').textContent = result.follower_count;
+        }
+      } catch (e) { /* silent fail, network hiccup */ }
+      followBtn.disabled = false;
+    });
+
+    card.querySelector('.followers-btn').addEventListener('click', () => openFollowers(u.id, u.username));
+
+    card.querySelector('.user-head').style.cursor = 'pointer';
+    card.querySelector('.user-head').addEventListener('click', () => openProfileView(u, followBtn, label, card));
+
+    return card;
+  }
+
+  async function openFollowers(userId, username) {
+    followersTitle.textContent = username.toUpperCase() + "'S FOLLOWERS";
+    followersList.innerHTML = '<p style="text-align:center;color:var(--muted);padding:20px 0;font-size:0.85em;">Loading...</p>';
+    followersBackdrop.classList.add('open');
+    try {
+      const { data: rows, error } = await supabaseClient
+        .from('follows')
+        .select('created_at, follower:follower_id(id, username, avatar_url)')
+        .eq('followed_id', userId)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        followersList.innerHTML = `<p style="text-align:center;color:var(--muted);padding:20px 0;font-size:0.85em;">${error.message || 'Could not load followers'}</p>`;
+        return;
+      }
+      if (!rows || rows.length === 0) {
+        followersList.innerHTML = '<p style="text-align:center;color:var(--muted);padding:20px 0;font-size:0.85em;">No followers yet.</p>';
+        return;
+      }
+      followersList.innerHTML = '';
+      rows.forEach(row => {
+        const f = row.follower;
+        if (!f) return;
+        const el = document.createElement('div');
+        el.className = 'follower-row';
+        el.innerHTML = `<div class="avatar"></div><span class="name"></span>`;
+        const followerAvatarEl = el.querySelector('.avatar');
+        if (f.avatar_url) {
+          followerAvatarEl.innerHTML = `<img src="${f.avatar_url}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;">`;
+        } else {
+          followerAvatarEl.textContent = initialsOf(f.username);
+        }
+        el.querySelector('.name').textContent = f.username;
+        followersList.appendChild(el);
+      });
+    } catch (e) {
+      followersList.innerHTML = '<p style="text-align:center;color:var(--muted);padding:20px 0;font-size:0.85em;">Network error.</p>';
+    }
+  }
+
+  document.getElementById('followersCloseBtn').addEventListener('click', () => followersBackdrop.classList.remove('open'));
+  followersBackdrop.addEventListener('click', e => { if (e.target === followersBackdrop) followersBackdrop.classList.remove('open'); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && followersBackdrop.classList.contains('open')) followersBackdrop.classList.remove('open'); });
+
+  // ----- Full profile view (WhatsApp-contact style) -----
+  const profileViewBackdrop = document.getElementById('profileViewBackdrop');
+  const profileViewBody = document.getElementById('profileViewBody');
+
+  function openProfileView(u, cardFollowBtn, cardLabel, card) {
+    const avatarHtml = u.avatar_url
+      ? `<img src="${u.avatar_url}" alt="" style="width:96px;height:96px;border-radius:50%;object-fit:cover;">`
+      : `<div style="width:96px;height:96px;border-radius:50%;background:var(--surface,#1a1a1a);display:flex;align-items:center;justify-content:center;font-size:1.4em;font-weight:600;">${initialsOf(u.username)}</div>`;
+
+    profileViewBody.innerHTML = `
+      <div style="display:flex;flex-direction:column;align-items:center;gap:10px;">
+        ${avatarHtml}
+        <div style="font-size:1.15em;font-weight:600;">${u.username}</div>
+        ${u.role ? `<span class="role-badge" style="position:static;">${u.role}</span>` : ''}
+        <div style="color:var(--muted);font-size:0.9em;line-height:1.4;max-width:280px;">${u.about || 'No bio yet.'}</div>
+        <div style="font-size:0.85em;color:var(--muted);"><b id="pvFollowerCount">${u.follower_count}</b> followers</div>
+        <button class="action-btn add-friend-btn" id="pvFollowBtn" style="width:100%;justify-content:center;margin-top:6px;">
+          <span id="pvFollowLabel"></span>
+        </button>
+      </div>
+    `;
+
+    const pvFollowBtn = document.getElementById('pvFollowBtn');
+    const pvFollowLabel = document.getElementById('pvFollowLabel');
+    const pvFollowerCount = document.getElementById('pvFollowerCount');
+
+    function paintPvFollowState(following) {
+      pvFollowBtn.classList.toggle('active', following);
+      pvFollowLabel.textContent = following ? 'Following' : 'Add Friend';
+    }
+    paintPvFollowState(u.followed_by_me);
+
+    pvFollowBtn.addEventListener('click', async () => {
+      pvFollowBtn.disabled = true;
+      try {
+        const result = await toggleFollow(u.id);
+        if (result) {
+          u.followed_by_me = result.following;
+          paintPvFollowState(result.following);
+          pvFollowerCount.textContent = result.follower_count;
+          // keep the underlying card in sync too
+          cardFollowBtn.classList.toggle('active', result.following);
+          cardLabel.textContent = result.following ? 'Following' : 'Add Friend';
+          card.querySelector('.fcount').textContent = result.follower_count;
+        }
+      } catch (e) { /* silent fail, network hiccup */ }
+      pvFollowBtn.disabled = false;
+    });
+
+    document.getElementById('profileViewBackdrop').querySelector('.modal-title').textContent = u.username.toUpperCase();
+    profileViewBackdrop.classList.add('open');
+  }
+
+  document.getElementById('profileViewCloseBtn').addEventListener('click', () => profileViewBackdrop.classList.remove('open'));
+  profileViewBackdrop.addEventListener('click', e => { if (e.target === profileViewBackdrop) profileViewBackdrop.classList.remove('open'); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && profileViewBackdrop.classList.contains('open')) profileViewBackdrop.classList.remove('open'); });
+
+  let searchTimer = null;
+  async function loadUsers(q = '') {
+    if (!myId) {
+      const { data: { session } } = await supabaseClient.auth.getSession();
+      if (!session) {
+        userList.innerHTML = '<p class="empty-state">Not logged in. <a href="../login/login.html" style="color:var(--phosphor);">Go to login</a></p>';
+        return;
+      }
+      myId = session.user.id;
+    }
+
+    try {
+      let query = supabaseClient
+        .from('profiles')
+        .select('id, username, avatar_url, about, role')
+        .neq('id', myId)
+        .order('username', { ascending: true })
+        .limit(100);
+
+      if (q !== '') {
+        query = query.or(`username.ilike.%${q}%,about.ilike.%${q}%`);
+      }
+
+      const { data: users, error } = await query;
+
+      if (error) {
+        userList.innerHTML = `<p class="empty-state">${error.message || 'Could not load users'}</p>`;
+        return;
+      }
+      if (!users || users.length === 0) {
+        userList.innerHTML = '<p class="empty-state">No users found.</p>';
+        return;
+      }
+
+      // Batch-fetch follower counts + "do I follow them" for the whole list
+      // instead of one round trip per user.
+      const ids = users.map(u => u.id);
+      const [{ data: allFollowRows }, { data: myFollowRows }] = await Promise.all([
+        supabaseClient.from('follows').select('followed_id').in('followed_id', ids),
+        supabaseClient.from('follows').select('followed_id').eq('follower_id', myId).in('followed_id', ids)
+      ]);
+
+      const followerCounts = {};
+      (allFollowRows || []).forEach(r => {
+        followerCounts[r.followed_id] = (followerCounts[r.followed_id] || 0) + 1;
+      });
+      const followedByMe = new Set((myFollowRows || []).map(r => r.followed_id));
+
+      userList.innerHTML = '';
+      users.forEach(u => {
+        u.follower_count = followerCounts[u.id] || 0;
+        u.followed_by_me = followedByMe.has(u.id);
+        userList.appendChild(renderUserCard(u));
+      });
+    } catch (e) {
+      userList.innerHTML = '<p class="empty-state">Network error.</p>';
+    }
+  }
+
+  searchInput.addEventListener('input', () => {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(() => loadUsers(searchInput.value.trim()), 300);
+  });
+
+  userList.innerHTML = '<p class="loading-state">Loading users...</p>';
+  loadUsers();
+</script>
+
+</body>
+</html>

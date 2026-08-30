@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Notifications - BlackBox</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Inter', sans-serif;
+  }
+
+  body {
+    background: #000000;
+    color: #e0e0e0;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    padding: 30px 20px;
+  }
+
+  .wrap {
+    max-width: 560px;
+    width: 100%;
+  }
+
+  .page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 18px;
+    gap: 12px;
+  }
+
+  .page-header h1 {
+    color: #fff;
+    font-size: 1.3em;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .unread-badge {
+    background: #7CFFB2;
+    color: #000;
+    font-size: 0.65em;
+    font-weight: 800;
+    padding: 2px 9px;
+    border-radius: 999px;
+    display: none;
+  }
+  .unread-badge.show { display: inline-block; }
+
+  .mark-all-btn {
+    padding: 8px 14px;
+    border: 1px solid rgba(255,255,255,0.4);
+    border-radius: 10px;
+    background: transparent;
+    color: #ccc;
+    font-weight: 700;
+    font-size: 0.72em;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+  }
+  .mark-all-btn:hover:not(:disabled) { border-color: #fff; color: #fff; }
+  .mark-all-btn:disabled { opacity: 0.4; cursor: default; }
+
+  .list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .notif-card {
+    background: #0a0a0a;
+    border: 1px solid rgba(255,255,255,0.6);
+    border-radius: 14px;
+    padding: 14px 16px;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    cursor: pointer;
+    transition: border-color 0.2s ease, background 0.2s ease;
+    position: relative;
+  }
+  .notif-card:hover { border-color: #fff; }
+  .notif-card.unread { background: #0d120e; }
+  .notif-card.unread::before {
+    content: '';
+    position: absolute;
+    left: -1px; top: 14px; bottom: 14px;
+    width: 3px;
+    background: #7CFFB2;
+    border-radius: 3px;
+  }
+
+  .notif-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: #111111;
+    border: 1px solid rgba(255,255,255,0.25);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.15em;
+    flex-shrink: 0;
+    overflow: hidden;
+  }
+  .notif-icon img { width: 100%; height: 100%; object-fit: cover; }
+
+  .notif-body { flex: 1; min-width: 0; }
+
+  .notif-text {
+    color: #e0e0e0;
+    font-size: 0.88em;
+    line-height: 1.45;
+  }
+  .notif-text strong { color: #fff; font-weight: 700; }
+  .notif-snippet {
+    color: #888;
+    font-size: 0.85em;
+    margin-top: 3px;
+    font-style: italic;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .notif-time {
+    color: #666;
+    font-size: 0.74em;
+    margin-top: 5px;
+  }
+
+  .state-msg {
+    text-align: center;
+    color: #666;
+    font-size: 0.9em;
+    padding: 60px 20px;
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="page-header">
+    <h1>Notifications <span class="unread-badge" id="unreadBadge">0</span></h1>
+    <button class="mark-all-btn" id="markAllBtn">Mark all read</button>
+  </div>
+
+  <div class="list" id="list"></div>
+  <div class="state-msg" id="stateMsg" style="display:none;"></div>
+</div>
+
+<script>
+  const token = localStorage.getItem('bb_token');
+  const listEl = document.getElementById('list');
+  const stateMsg = document.getElementById('stateMsg');
+  const unreadBadge = document.getElementById('unreadBadge');
+  const markAllBtn = document.getElementById('markAllBtn');
+
+  let notifications = [];
+
+  function setState(text) {
+    stateMsg.textContent = text || '';
+    stateMsg.style.display = text ? 'block' : 'none';
+  }
+
+  function timeAgo(iso) {
+    const then = new Date(iso.replace(' ', 'T') + 'Z').getTime();
+    const diff = Date.now() - then;
+    const s = Math.floor(diff / 1000);
+    if (s < 60) return 'Just now';
+    const m = Math.floor(s / 60);
+    if (m < 60) return `${m}m ago`;
+    const h = Math.floor(m / 60);
+    if (h < 24) return `${h}h ago`;
+    const d = Math.floor(h / 24);
+    return `${d}d ago`;
+  }
+
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str ?? '';
+    return div.innerHTML;
+  }
+
+  function iconFor(n) {
+    if (n.type === 'tool_get') {
+      return n.tool_icon_image
+        ? `<img src="${n.tool_icon_image}" alt="">`
+        : (n.tool_icon || '🛠');
+    }
+    if (n.type === 'follow') return '➕';
+    if (n.type === 'like') return '❤️';
+    if (n.type === 'comment') return '💬';
+    return '🔔';
+  }
+
+  function textFor(n) {
+    const who = `<strong>${escapeHtml(n.actor_username)}</strong>`;
+    switch (n.type) {
+      case 'follow': return `${who} started following you`;
+      case 'like': return `${who} liked your blip`;
+      case 'comment': return `${who} commented on your blip`;
+      case 'tool_get': return `${who} got <strong>${escapeHtml(n.tool_name || 'your tool')}</strong>`;
+      default: return `${who} did something`;
+    }
+  }
+
+  function renderNotifCard(n) {
+    const card = document.createElement('div');
+    card.className = 'notif-card' + (n.is_read ? '' : ' unread');
+    card.dataset.id = n.id;
+
+    const snippet = (n.type === 'comment' && n.comment_text)
+      ? `<div class="notif-snippet">"${escapeHtml(n.comment_text)}"</div>`
+      : (n.type === 'like' && n.blip_snippet)
+        ? `<div class="notif-snippet">"${escapeHtml(n.blip_snippet)}"</div>`
+        : '';
+
+    card.innerHTML = `
+      <div class="notif-icon">${iconFor(n)}</div>
+      <div class="notif-body">
+        <div class="notif-text">${textFor(n)}</div>
+        ${snippet}
+        <div class="notif-time">${timeAgo(n.created_at)}</div>
+      </div>
+    `;
+
+    card.addEventListener('click', () => {
+      if (!n.is_read) markRead(n.id, card);
+    });
+
+    return card;
+  }
+
+  function updateUnreadBadge() {
+    const unread = notifications.filter(n => !n.is_read).length;
+    unreadBadge.textContent = unread;
+    unreadBadge.classList.toggle('show', unread > 0);
+    markAllBtn.disabled = unread === 0;
+    markAllBtn.textContent = unread === 0 ? 'All caught up' : 'Mark all read';
+
+    try {
+      window.parent.postMessage({ type: 'bb-notifications-changed', unread_count: unread }, '*');
+    } catch (e) { /* ignore */ }
+  }
+
+  function renderList() {
+    listEl.innerHTML = '';
+    if (notifications.length === 0) {
+      setState('No notifications yet. Follows, likes, comments, and tool gets will show up here.');
+      return;
+    }
+    setState('');
+    notifications.forEach(n => listEl.appendChild(renderNotifCard(n)));
+  }
+
+  async function markRead(id, cardEl) {
+    if (cardEl) cardEl.classList.remove('unread');
+    const n = notifications.find(x => x.id === id);
+    if (n) n.is_read = true;
+    updateUnreadBadge();
+    try {
+      await fetch('../api/notifications_read.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        body: JSON.stringify({ notification_id: id })
+      });
+    } catch (e) { /* best effort, local state already updated */ }
+  }
+
+  markAllBtn.addEventListener('click', async () => {
+    if (markAllBtn.disabled) return;
+    notifications.forEach(n => n.is_read = true);
+    renderList();
+    updateUnreadBadge();
+    try {
+      await fetch('../api/notifications_read.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        body: JSON.stringify({ mark_all: true })
+      });
+    } catch (e) { /* best effort */ }
+  });
+
+  async function loadNotifications(showLoadingState) {
+    if (!token) {
+      setState('Not logged in.');
+      return;
+    }
+    if (showLoadingState) setState('Loading notifications...');
+    try {
+      const res = await fetch('../api/notifications_list.php', {
+        headers: { 'Authorization': 'Bearer ' + token }
+      });
+      const result = await res.json();
+      if (!result.success) {
+        setState(result.message || 'Could not load notifications.');
+        return;
+      }
+      notifications = result.notifications;
+      renderList();
+      updateUnreadBadge();
+    } catch (e) {
+      setState('Network error — is Apache/MySQL running?');
+    }
+  }
+
+  loadNotifications(true);
+  setInterval(() => loadNotifications(false), 20000);
+</script>
+
+</body>
+</html>

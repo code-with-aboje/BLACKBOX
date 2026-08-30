@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Profile — BlackBox</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: radial-gradient(black, #050505);
+    color: #d9ffe8;
+    font-family: 'Courier New', monospace;
+    min-height: 100vh;
+    padding: 24px;
+  }
+
+  .wrap {
+    max-width: 640px;
+    margin: 0 auto;
+  }
+
+  h1 {
+    color: rgba(0,255,127,0.9);
+    font-size: 20px;
+    letter-spacing: 2px;
+    margin-bottom: 20px;
+    text-shadow: 0 0 12px rgba(0,255,127,0.4);
+  }
+
+  .card {
+    border: 1px solid rgba(0,255,127,0.4);
+    background: rgba(0,255,127,0.03);
+    box-shadow: 0 0 18px rgba(0,255,127,0.15), inset 0 0 20px rgba(0,255,127,0.05);
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+
+  .avatar-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+
+  .avatar-circle {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    border: 2px solid rgba(0,255,127,0.6);
+    background: rgba(0,255,127,0.08);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 26px;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+
+  .avatar-circle img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .username {
+    font-size: 18px;
+    color: #eafff2;
+    font-weight: bold;
+  }
+
+  .role-badge {
+    display: inline-block;
+    margin-top: 4px;
+    padding: 2px 10px;
+    font-size: 11px;
+    letter-spacing: 1px;
+    border: 1px solid rgba(0,255,127,0.5);
+    border-radius: 12px;
+    color: rgba(0,255,127,0.9);
+  }
+
+  .field {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(0,255,127,0.12);
+    font-size: 13px;
+  }
+
+  .field:last-child { border-bottom: none; }
+
+  .field .label {
+    color: rgba(217,255,232,0.5);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    font-size: 11px;
+  }
+
+  .field .value {
+    color: #eafff2;
+    text-align: right;
+    word-break: break-all;
+  }
+
+  .state-msg {
+    color: rgba(217,255,232,0.6);
+    font-size: 13px;
+    padding: 20px 0;
+    text-align: center;
+  }
+
+  .state-msg.error { color: #ff6b6b; }
+
+  .bio-text {
+    font-size: 13px;
+    color: #eafff2;
+    line-height: 1.5;
+    padding: 4px 0 14px;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  .bio-text.empty {
+    color: rgba(217,255,232,0.4);
+    font-style: italic;
+  }
+
+  .bio-edit-btn {
+    background: none;
+    border: 1px solid rgba(0,255,127,0.4);
+    color: rgba(0,255,127,0.9);
+    font-family: inherit;
+    font-size: 11px;
+    letter-spacing: 1px;
+    padding: 4px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+
+  .bio-edit-btn:hover {
+    background: rgba(0,255,127,0.1);
+  }
+
+  .bio-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 10px;
+  }
+
+  .bio-header .label {
+    color: rgba(217,255,232,0.5);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    font-size: 11px;
+  }
+
+  .bio-textarea {
+    width: 100%;
+    margin-top: 8px;
+    background: rgba(0,255,127,0.04);
+    border: 1px solid rgba(0,255,127,0.4);
+    border-radius: 8px;
+    color: #eafff2;
+    font-family: inherit;
+    font-size: 13px;
+    padding: 10px;
+    resize: vertical;
+    min-height: 70px;
+  }
+
+  .bio-textarea:focus {
+    outline: none;
+    border-color: rgba(0,255,127,0.8);
+  }
+
+  .bio-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 8px;
+  }
+
+  .bio-char-count {
+    font-size: 11px;
+    color: rgba(217,255,232,0.4);
+  }
+
+  .bio-char-count.over { color: #ff8080; }
+
+  .bio-actions { display: flex; gap: 8px; }
+
+  .bio-save-btn, .bio-cancel-btn {
+    font-family: inherit;
+    font-size: 11px;
+    letter-spacing: 1px;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+
+  .bio-save-btn {
+    background: rgba(0,255,127,0.15);
+    border: 1px solid rgba(0,255,127,0.6);
+    color: #eafff2;
+  }
+  .bio-save-btn:hover { background: rgba(0,255,127,0.25); }
+  .bio-save-btn:disabled { opacity: 0.5; cursor: default; }
+
+  .bio-cancel-btn {
+    background: none;
+    border: 1px solid rgba(217,255,232,0.2);
+    color: rgba(217,255,232,0.6);
+  }
+  .bio-cancel-btn:hover { border-color: rgba(217,255,232,0.4); }
+
+  .bio-msg {
+    font-size: 11px;
+    margin-top: 6px;
+  }
+  .bio-msg.error { color: #ff8080; }
+  .bio-msg.success { color: rgba(0,255,127,0.9); }
+
+  .logout-btn {
+    width: 100%;
+    padding: 12px;
+    background: rgba(255,60,60,0.08);
+    border: 1px solid rgba(255,60,60,0.4);
+    color: #ff8080;
+    border-radius: 8px;
+    font-family: inherit;
+    letter-spacing: 1px;
+    cursor: pointer;
+    font-size: 13px;
+  }
+
+  .logout-btn:hover {
+    background: rgba(255,60,60,0.15);
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <h1>// USER_PROFILE</h1>
+
+  <div id="content">
+    <div class="state-msg">Loading profile data...</div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../supabase-client.js"></script>
+<script>
+  const contentEl = document.getElementById('content');
+
+  function initials(name) {
+    return name ? name.trim().charAt(0).toUpperCase() : '?';
+  }
+
+  function formatDate(dt) {
+    if (!dt) return '—';
+    const d = new Date(dt);
+    if (isNaN(d)) return dt;
+    return d.toLocaleString();
+  }
+
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str ?? '';
+    return div.innerHTML;
+  }
+
+  function renderBioView(u) {
+    const hasBio = !!(u.about && u.about.trim());
+    return `
+      <div class="bio-header">
+        <span class="label">Bio</span>
+        <button class="bio-edit-btn" id="bioEditBtn">${hasBio ? 'EDIT' : 'ADD BIO'}</button>
+      </div>
+      <div class="bio-text${hasBio ? '' : ' empty'}" id="bioText">${hasBio ? escapeHtml(u.about) : 'No bio yet.'}</div>
+    `;
+  }
+
+  function renderBioEdit(u) {
+    const current = u.about || '';
+    return `
+      <div class="bio-header">
+        <span class="label">Bio</span>
+      </div>
+      <textarea class="bio-textarea" id="bioTextarea" maxlength="280" placeholder="Say something about yourself...">${escapeHtml(current)}</textarea>
+      <div class="bio-footer">
+        <span class="bio-char-count" id="bioCharCount">${current.length}/280</span>
+        <div class="bio-actions">
+          <button class="bio-cancel-btn" id="bioCancelBtn">CANCEL</button>
+          <button class="bio-save-btn" id="bioSaveBtn">SAVE</button>
+        </div>
+      </div>
+      <div class="bio-msg" id="bioMsg"></div>
+    `;
+  }
+
+  function wireBioView(u) {
+    document.getElementById('bioEditBtn').addEventListener('click', () => {
+      document.getElementById('bioSection').innerHTML = renderBioEdit(u);
+      wireBioEdit(u);
+    });
+  }
+
+  function wireBioEdit(u) {
+    const textarea = document.getElementById('bioTextarea');
+    const charCount = document.getElementById('bioCharCount');
+    const saveBtn = document.getElementById('bioSaveBtn');
+    const cancelBtn = document.getElementById('bioCancelBtn');
+    const msgEl = document.getElementById('bioMsg');
+
+    textarea.focus();
+    textarea.selectionStart = textarea.value.length;
+
+    textarea.addEventListener('input', () => {
+      const len = textarea.value.length;
+      charCount.textContent = `${len}/280`;
+      charCount.classList.toggle('over', len > 280);
+    });
+
+    cancelBtn.addEventListener('click', () => {
+      document.getElementById('bioSection').innerHTML = renderBioView(u);
+      wireBioView(u);
+    });
+
+    saveBtn.addEventListener('click', async () => {
+      const newAbout = textarea.value.trim();
+      if (newAbout.length > 280) {
+        msgEl.textContent = 'Bio must be 280 characters or fewer.';
+        msgEl.className = 'bio-msg error';
+        return;
+      }
+      saveBtn.disabled = true;
+      msgEl.textContent = '';
+      msgEl.className = 'bio-msg';
+
+      // Direct table update — RLS policy "users can update their own
+      // profile" only allows this when auth.uid() matches the row's id,
+      // so this only ever succeeds for your own profile.
+      const { error } = await supabaseClient
+        .from('profiles')
+        .update({ about: newAbout })
+        .eq('id', u.id);
+
+      if (error) {
+        msgEl.textContent = error.message || 'Could not save bio.';
+        msgEl.className = 'bio-msg error';
+        saveBtn.disabled = false;
+        return;
+      }
+
+      u.about = newAbout;
+      document.getElementById('bioSection').innerHTML = renderBioView(u);
+      wireBioView(u);
+    });
+  }
+
+  async function loadProfile() {
+    const { data: { session } } = await supabaseClient.auth.getSession();
+
+    if (!session) {
+      contentEl.innerHTML = `<div class="state-msg error">Not logged in. <a href="../login/login.html" style="color:#8fffc0;">Go to login</a></div>`;
+      return;
+    }
+
+    const authUser = session.user;
+
+    // profiles.id is the same uuid as the auth user's id (foreign key to
+    // auth.users), so this is a plain lookup by primary key.
+    const { data: u, error } = await supabaseClient
+      .from('profiles')
+      .select('*')
+      .eq('id', authUser.id)
+      .single();
+
+    if (error || !u) {
+      contentEl.innerHTML = `<div class="state-msg error">${error?.message || 'Could not load profile'}</div>`;
+      return;
+    }
+
+    contentEl.innerHTML = `
+      <div class="card">
+        <div class="avatar-row">
+          <div class="avatar-circle">
+            ${u.avatar_url ? `<img src="${u.avatar_url}" alt="avatar">` : initials(u.username)}
+          </div>
+          <div>
+            <div class="username">${u.username}</div>
+            <span class="role-badge">${u.role}</span>
+          </div>
+        </div>
+
+        <div class="field"><span class="label">User ID</span><span class="value">${u.id}</span></div>
+        <div class="field"><span class="label">Email</span><span class="value">${u.email}</span></div>
+        <div class="field"><span class="label">Joined</span><span class="value">${formatDate(u.created_at)}</span></div>
+        <div class="field"><span class="label">Last Login</span><span class="value">${formatDate(u.last_login)}</span></div>
+        <div id="bioSection">${renderBioView(u)}</div>
+      </div>
+
+      <button class="logout-btn" id="logoutBtn">LOG OUT</button>
+    `;
+
+    wireBioView(u);
+
+    document.getElementById('logoutBtn').addEventListener('click', async () => {
+      await supabaseClient.auth.signOut();
+      window.top.location.href = '../login/login.html';
+    });
+  }
+
+  loadProfile();
+</script>
+
+</body>
+</html>

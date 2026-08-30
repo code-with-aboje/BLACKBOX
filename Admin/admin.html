@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Admin — BlackBox</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: radial-gradient(black, #050505);
+    color: #d9ffe8;
+    font-family: 'Courier New', monospace;
+    min-height: 100vh;
+    padding: 24px;
+  }
+
+  .wrap { max-width: 900px; margin: 0 auto; }
+
+  h1 {
+    color: rgba(0,255,127,0.9);
+    font-size: 20px;
+    letter-spacing: 2px;
+    margin-bottom: 6px;
+    text-shadow: 0 0 12px rgba(0,255,127,0.4);
+  }
+
+  .subtitle {
+    color: rgba(217,255,232,0.45);
+    font-size: 12px;
+    margin-bottom: 24px;
+  }
+
+  .stat-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .stat-card {
+    border: 1px solid rgba(0,255,127,0.4);
+    background: rgba(0,255,127,0.03);
+    box-shadow: 0 0 18px rgba(0,255,127,0.12), inset 0 0 20px rgba(0,255,127,0.04);
+    border-radius: 10px;
+    padding: 16px;
+  }
+
+  .stat-number {
+    font-size: 28px;
+    font-weight: bold;
+    color: #eafff2;
+  }
+
+  .stat-label {
+    font-size: 11px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: rgba(217,255,232,0.5);
+    margin-top: 4px;
+  }
+
+  .section-title {
+    font-size: 13px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: rgba(0,255,127,0.8);
+    margin: 24px 0 10px;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    border: 1px solid rgba(0,255,127,0.2);
+    border-radius: 8px;
+    overflow: hidden;
+    font-size: 13px;
+  }
+
+  th, td {
+    padding: 10px 12px;
+    text-align: left;
+    border-bottom: 1px solid rgba(0,255,127,0.12);
+  }
+
+  th {
+    color: rgba(217,255,232,0.5);
+    text-transform: uppercase;
+    font-size: 10px;
+    letter-spacing: 1px;
+    background: rgba(0,255,127,0.05);
+  }
+
+  tr:last-child td { border-bottom: none; }
+
+  .role-pill {
+    display: inline-block;
+    padding: 2px 8px;
+    font-size: 10px;
+    border: 1px solid rgba(0,255,127,0.5);
+    border-radius: 10px;
+    color: rgba(0,255,127,0.9);
+  }
+
+  .state-msg {
+    color: rgba(217,255,232,0.6);
+    font-size: 13px;
+    padding: 30px 0;
+    text-align: center;
+  }
+
+  .refresh-btn {
+    margin-top: 20px;
+    padding: 10px 16px;
+    background: rgba(0,255,127,0.08);
+    border: 1px solid rgba(0,255,127,0.4);
+    color: rgba(0,255,127,0.9);
+    border-radius: 8px;
+    font-family: inherit;
+    letter-spacing: 1px;
+    cursor: pointer;
+    font-size: 12px;
+  }
+  .refresh-btn:hover { background: rgba(0,255,127,0.15); }
+
+  .lock-screen {
+    max-width: 340px;
+    margin: 80px auto;
+    text-align: center;
+  }
+  .lock-screen input {
+    width: 100%;
+    margin-top: 20px;
+    padding: 12px 14px;
+    background: rgba(0,255,127,0.05);
+    border: 1px solid rgba(0,255,127,0.4);
+    color: #eafff2;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 14px;
+  }
+  .lock-screen input:focus { outline: none; border-color: rgba(0,255,127,0.8); }
+  .lock-screen button {
+    width: 100%;
+    margin-top: 12px;
+    padding: 12px;
+    background: rgba(0,255,127,0.9);
+    border: none;
+    color: #04150a;
+    border-radius: 8px;
+    font-family: inherit;
+    font-weight: bold;
+    letter-spacing: 1px;
+    cursor: pointer;
+  }
+  .lock-screen button:hover { background: rgba(0,255,127,1); }
+  .lock-error {
+    color: #ff8080;
+    font-size: 12px;
+    margin-top: 10px;
+    display: none;
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <h1>// ADMIN_DASHBOARD</h1>
+  <div class="subtitle" id="subtitleText">enter password to continue</div>
+
+  <div id="lockScreen" class="lock-screen">
+    <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="rgba(0,255,127,0.8)" stroke-width="1.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+    <input type="password" id="adminPassword" placeholder="admin password" autofocus>
+    <button id="unlockBtn">UNLOCK</button>
+    <div class="lock-error" id="lockError">Wrong password</div>
+  </div>
+
+  <div id="content" style="display:none;"></div>
+</div>
+
+<script>
+  const ADMIN_TOKEN_KEY = 'bb_admin_token';
+  const lockScreen = document.getElementById('lockScreen');
+  const contentEl = document.getElementById('content');
+  const subtitleText = document.getElementById('subtitleText');
+  const passwordInput = document.getElementById('adminPassword');
+  const unlockBtn = document.getElementById('unlockBtn');
+  const lockError = document.getElementById('lockError');
+
+  function formatDate(dt) {
+    const d = new Date(dt.replace(' ', 'T'));
+    if (isNaN(d)) return dt;
+    return d.toLocaleString();
+  }
+
+  async function tryLoadWithToken(token) {
+    try {
+      const res = await fetch('../api/admin_stats.php', {
+        headers: { 'Authorization': 'Bearer ' + token }
+      });
+      const result = await res.json();
+      if (!result.success) return false;
+
+      lockScreen.style.display = 'none';
+      contentEl.style.display = '';
+      subtitleText.textContent = 'no login required yet for other users — this page is now password-protected';
+      renderStats(result);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function renderStats(result) {
+    const roleRows = result.role_breakdown.map(r =>
+      `<div class="stat-card"><div class="stat-number">${r.count}</div><div class="stat-label">${r.role}</div></div>`
+    ).join('');
+
+    const userRows = result.recent_users.map(u => `
+      <tr>
+        <td>${u.id}</td>
+        <td>${u.username}</td>
+        <td>${u.email}</td>
+        <td><span class="role-pill">${u.role}</span></td>
+        <td>${formatDate(u.created_at)}</td>
+      </tr>
+    `).join('');
+
+    contentEl.innerHTML = `
+      <div class="stat-row">
+        <div class="stat-card">
+          <div class="stat-number">${result.total_users}</div>
+          <div class="stat-label">Total Users</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">${result.new_today}</div>
+          <div class="stat-label">New Today</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">${result.total_blips}</div>
+          <div class="stat-label">Total Blips</div>
+        </div>
+      </div>
+
+      <div class="section-title">Users by Role</div>
+      <div class="stat-row">${roleRows || '<div class="state-msg">No users yet</div>'}</div>
+
+      <div class="section-title">Most Recent Signups</div>
+      <table>
+        <thead>
+          <tr><th>ID</th><th>Username</th><th>Email</th><th>Role</th><th>Joined</th></tr>
+        </thead>
+        <tbody>${userRows || '<tr><td colspan="5" class="state-msg">No users yet</td></tr>'}</tbody>
+      </table>
+
+      <button class="refresh-btn" id="refreshBtn">REFRESH</button>
+    `;
+
+    document.getElementById('refreshBtn').addEventListener('click', () => {
+      tryLoadWithToken(localStorage.getItem(ADMIN_TOKEN_KEY));
+    });
+  }
+
+  async function attemptUnlock() {
+    const password = passwordInput.value;
+    if (!password) return;
+    lockError.style.display = 'none';
+    unlockBtn.disabled = true;
+    unlockBtn.textContent = 'CHECKING...';
+
+    try {
+      const res = await fetch('../api/admin_login.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password })
+      });
+      const result = await res.json();
+
+      if (!result.success) {
+        lockError.textContent = result.message || 'Wrong password';
+        lockError.style.display = 'block';
+        unlockBtn.disabled = false;
+        unlockBtn.textContent = 'UNLOCK';
+        return;
+      }
+
+      localStorage.setItem(ADMIN_TOKEN_KEY, result.token);
+      await tryLoadWithToken(result.token);
+    } catch (e) {
+      lockError.textContent = 'Network error — is Apache/MySQL running?';
+      lockError.style.display = 'block';
+    }
+    unlockBtn.disabled = false;
+    unlockBtn.textContent = 'UNLOCK';
+  }
+
+  unlockBtn.addEventListener('click', attemptUnlock);
+  passwordInput.addEventListener('keydown', e => { if (e.key === 'Enter') attemptUnlock(); });
+
+  // if we already have a saved token from before, try it silently first
+  (async () => {
+    const saved = localStorage.getItem(ADMIN_TOKEN_KEY);
+    if (saved) await tryLoadWithToken(saved);
+  })();
+</script>
+
+</body>
+</html>
