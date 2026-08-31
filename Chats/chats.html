@@ -417,10 +417,10 @@
     </div>
   </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../supabase-client.js"></script>
 <script>
-  const token = localStorage.getItem('bb_token');
-  const userRaw = localStorage.getItem('bb_user');
-  const me = userRaw ? JSON.parse(userRaw) : null;
+  let currentUser = null;
 
   const convList = document.getElementById('convList');
   const threadPane = document.getElementById('threadPane');
@@ -437,28 +437,15 @@
   }
 
   function timeAgo(dateStr) {
-    // DB stores timestamps in UTC — parse explicitly as UTC so the display
-    // matches your local clock instead of drifting by your UTC offset.
-    const d = new Date(dateStr.replace(' ', 'T') + 'Z');
+    // Postgres returns timestamptz as ISO strings with timezone already
+    // included, so no manual UTC hack needed here.
+    const d = new Date(dateStr);
     const secs = Math.floor((Date.now() - d.getTime()) / 1000);
     if (secs < 5) return 'now';
     if (secs < 60) return secs + 's';
     if (secs < 3600) return Math.floor(secs / 60) + 'm';
     if (secs < 86400) return Math.floor(secs / 3600) + 'h';
     return Math.floor(secs / 86400) + 'd';
-  }
-
-  async function apiGet(url) {
-    const res = await fetch(url, { headers: { 'Authorization': 'Bearer ' + token } });
-    return res.json();
-  }
-  async function apiPost(url, body) {
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-      body: JSON.stringify(body)
-    });
-    return res.json();
   }
 
   // ----- Tabs -----
@@ -489,7 +476,7 @@
       const row = document.createElement('div');
       row.className = 'conv-item' + (item.conversation_id === activeConversationId ? ' selected' : '');
       const preview = item.last_message
-        ? (item.last_message.sender_id === me.id ? 'You: ' : '') + item.last_message.text
+        ? (item.last_message.sender_id === currentUser.id ? 'You: ' : '') + item.last_message.text
         : (activeTab === 'sent' ? 'Waiting for reply...' : 'Say hi!');
       const isPendingPreview = activeTab === 'sent' && item.status === 'pending';
 
@@ -509,22 +496,77 @@
   }
 
   async function loadLists() {
-    if (!token) {
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    if (!session) {
       convList.innerHTML = '<div class="empty-state">Not logged in.</div>';
       return;
     }
+    currentUser = session.user;
+
     try {
-      const result = await apiGet('../api/chat_list.php');
-      if (!result.success) {
-        convList.innerHTML = `<div class="empty-state">${result.message || 'Could not load chats'}</div>`;
+      const { data: convs, error: convError } = await supabaseClient
+        .from('conversations')
+        .select('*')
+        .or(`user_a.eq.${currentUser.id},user_b.eq.${currentUser.id}`);
+
+      if (convError) {
+        convList.innerHTML = `<div class="empty-state">${convError.message || 'Could not load chats'}</div>`;
         return;
       }
-      cachedLists = result;
-      receivedBadge.style.display = result.requests_received.length > 0 ? 'inline-block' : 'none';
-      receivedBadge.textContent = result.requests_received.length;
+
+      if (!convs || convs.length === 0) {
+        cachedLists = { chats: [], requests_received: [], requests_sent: [] };
+        receivedBadge.style.display = 'none';
+        renderList();
+        return;
+      }
+
+      const convIds = convs.map(c => c.id);
+      const otherIds = convs.map(c => c.user_a === currentUser.id ? c.user_b : c.user_a);
+
+      const { data: profilesData } = await supabaseClient
+        .from('profiles')
+        .select('id, username, avatar_url')
+        .in('id', otherIds);
+      const profileById = {};
+      (profilesData || []).forEach(p => { profileById[p.id] = p; });
+
+      const { data: messagesData } = await supabaseClient
+        .from('messages')
+        .select('conversation_id, sender_id, text, created_at')
+        .in('conversation_id', convIds)
+        .order('created_at', { ascending: false });
+
+      // messages are sorted newest-first, so the first one seen per
+      // conversation is that conversation's latest message
+      const lastMessageByConv = {};
+      (messagesData || []).forEach(m => {
+        if (!lastMessageByConv[m.conversation_id]) lastMessageByConv[m.conversation_id] = m;
+      });
+
+      const items = convs.map(c => {
+        const otherId = c.user_a === currentUser.id ? c.user_b : c.user_a;
+        const p = profileById[otherId] || { id: otherId, username: 'Unknown', avatar_url: null };
+        return {
+          conversation_id: c.id,
+          status: c.status,
+          requested_by: c.requested_by,
+          other_user: { id: p.id, username: p.username, avatar: p.avatar_url },
+          last_message: lastMessageByConv[c.id] || null
+        };
+      });
+
+      cachedLists = {
+        chats: items.filter(i => i.status === 'accepted'),
+        requests_received: items.filter(i => i.status === 'pending' && i.requested_by !== currentUser.id),
+        requests_sent: items.filter(i => i.status === 'pending' && i.requested_by === currentUser.id)
+      };
+
+      receivedBadge.style.display = cachedLists.requests_received.length > 0 ? 'inline-block' : 'none';
+      receivedBadge.textContent = cachedLists.requests_received.length;
       renderList();
     } catch (e) {
-      convList.innerHTML = '<div class="empty-state">Network error — is Apache/MySQL running?</div>';
+      convList.innerHTML = '<div class="empty-state">Network error.</div>';
     }
   }
 
@@ -564,7 +606,7 @@
       return;
     }
     box.innerHTML = messages.map(m => `
-      <div class="msg-row ${m.sender_id === me.id ? 'me' : ''}">
+      <div class="msg-row ${m.sender_id === currentUser.id ? 'me' : ''}">
         <div class="msg-bubble">${escapeHtml(m.text)}<span class="msg-time">${timeAgo(m.created_at)}</span></div>
       </div>
     `).join('');
@@ -580,7 +622,7 @@
   function renderFooter(status, requestedBy, myAlreadySent) {
     const footer = document.getElementById('threadFooter');
     if (!footer) return;
-    const isRequester = requestedBy === me.id;
+    const isRequester = requestedBy === currentUser.id;
 
     let bannerHtml = '';
     if (status === 'pending' && !isRequester) {
@@ -626,15 +668,33 @@
 
   async function loadThreadMessages(conversationId, silent) {
     try {
-      const result = await apiGet('../api/chat_messages.php?conversation_id=' + conversationId);
+      const { data: conv, error: convError } = await supabaseClient
+        .from('conversations')
+        .select('status, requested_by')
+        .eq('id', conversationId)
+        .single();
+
       if (conversationId !== activeConversationId) return; // user navigated away mid-fetch
-      if (!result.success) {
-        if (!silent) document.getElementById('threadMessages').innerHTML = `<div class="empty-state">${result.message || 'Could not load messages'}</div>`;
+
+      if (convError || !conv) {
+        if (!silent) document.getElementById('threadMessages').innerHTML = `<div class="empty-state">${convError?.message || 'Could not load messages'}</div>`;
         return;
       }
-      renderMessages(result.messages);
-      const myAlreadySent = result.messages.some(m => m.sender_id === me.id);
-      renderFooter(result.status, result.requested_by, myAlreadySent);
+
+      const { data: messages, error: msgError } = await supabaseClient
+        .from('messages')
+        .select('id, sender_id, text, created_at')
+        .eq('conversation_id', conversationId)
+        .order('created_at', { ascending: true });
+
+      if (msgError) {
+        if (!silent) document.getElementById('threadMessages').innerHTML = `<div class="empty-state">${msgError.message}</div>`;
+        return;
+      }
+
+      renderMessages(messages || []);
+      const myAlreadySent = (messages || []).some(m => m.sender_id === currentUser.id);
+      renderFooter(conv.status, conv.requested_by, myAlreadySent);
     } catch (e) {
       if (!silent) document.getElementById('threadMessages').innerHTML = '<div class="empty-state">Network error.</div>';
     }
@@ -648,13 +708,16 @@
     sendBtn.disabled = true;
     input.disabled = true;
     try {
-      const result = await apiPost('../api/chat_send.php', { conversation_id: activeConversationId, text });
-      if (result.success) {
+      const { error } = await supabaseClient.rpc('send_chat_message', {
+        p_conversation_id: activeConversationId,
+        p_text: text
+      });
+      if (!error) {
         input.value = '';
         await loadThreadMessages(activeConversationId);
         loadLists();
       } else {
-        alert(result.message || 'Could not send message');
+        alert(error.message || 'Could not send message');
         input.disabled = false;
         sendBtn.disabled = false;
       }
@@ -667,8 +730,11 @@
   async function respondToRequest(action) {
     if (!activeConversationId) return;
     try {
-      const result = await apiPost('../api/chat_respond.php', { conversation_id: activeConversationId, action });
-      if (result.success) {
+      const { error } = await supabaseClient.rpc('respond_to_chat', {
+        p_conversation_id: activeConversationId,
+        p_action: action
+      });
+      if (!error) {
         if (action === 'decline') {
           document.body.classList.remove('thread-open');
           activeConversationId = null;
@@ -705,21 +771,27 @@
     const q = searchInput.value.trim();
     searchResults.innerHTML = '<div class="loading-state">Searching...</div>';
     try {
-      const result = await apiGet('../api/users_list.php?q=' + encodeURIComponent(q));
-      if (!result.success || result.users.length === 0) {
+      const { data: users, error } = await supabaseClient
+        .from('profiles')
+        .select('id, username, avatar_url')
+        .ilike('username', `%${q}%`)
+        .neq('id', currentUser.id)
+        .limit(20);
+
+      if (error || !users || users.length === 0) {
         searchResults.innerHTML = '<div class="empty-state">No one found.</div>';
         return;
       }
       searchResults.innerHTML = '';
-      result.users.forEach(u => {
+      users.forEach(u => {
         const row = document.createElement('div');
         row.className = 'search-result-row';
-        row.innerHTML = `<div class="avatar">${avatarHtml(u.avatar, u.username)}</div><span class="name">${u.username}</span>`;
+        row.innerHTML = `<div class="avatar">${avatarHtml(u.avatar_url, u.username)}</div><span class="name">${u.username}</span>`;
         row.addEventListener('click', async () => {
           searchBackdrop.classList.remove('open');
-          const startResult = await apiPost('../api/chat_start.php', { user_id: u.id });
-          if (startResult.success) {
-            openThread(startResult.conversation_id, startResult.other_user);
+          const { data, error: startError } = await supabaseClient.rpc('start_conversation', { p_other_user_id: u.id });
+          if (!startError && data) {
+            openThread(data.conversation_id, data.other_user);
             loadLists();
           }
         });
