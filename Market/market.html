@@ -324,6 +324,8 @@
   </div>
   <!-- ===== END REUSABLE LOADING OVERLAY ===== -->
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../supabase-client.js"></script>
   <script>
     // ===== REUSABLE LOADING OVERLAY FUNCTIONS (copy this block too) =====
     function showLoadingOverlay(message = 'Loading...') {
@@ -372,22 +374,9 @@
     }
     // ===== END REUSABLE LOADING OVERLAY FUNCTIONS =====
 
-    const token = localStorage.getItem('bb_token');
+    let currentUser = null;
     const toolGrid = document.getElementById('toolGrid');
     let tools = [];
-
-    async function apiGet(url) {
-      const res = await fetch(url, { headers: { 'Authorization': 'Bearer ' + token } });
-      return res.json();
-    }
-    async function apiPost(url, body) {
-      const res = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-        body: JSON.stringify(body)
-      });
-      return { status: res.status, data: await res.json() };
-    }
 
     function formatDownloads(n) {
       if (n >= 1000) return (n / 1000).toFixed(n % 1000 === 0 ? 0 : 1) + 'k';
@@ -429,7 +418,7 @@
         }
 
         const thumbInner = tool.icon_image
-          ? `<img src="../${tool.icon_image}" alt="${tool.name}" style="width:100%;height:100%;object-fit:cover;">`
+          ? `<img src="${tool.icon_image}" alt="${tool.name}" style="width:100%;height:100%;object-fit:cover;">`
           : tool.icon;
 
         card.innerHTML = `
@@ -465,21 +454,24 @@
     }
 
     async function loadTools() {
-      if (!token) {
+      const { data: { session } } = await supabaseClient.auth.getSession();
+      if (!session) {
         toolGrid.innerHTML = '<p class="empty-state">Not logged in.</p>';
         return;
       }
+      currentUser = session.user;
+
       toolGrid.innerHTML = '<p class="loading-state">Loading tools...</p>';
       try {
-        const result = await apiGet('../api/market_list.php');
-        if (!result.success) {
-          toolGrid.innerHTML = `<p class="empty-state">${result.message || 'Could not load tools'}</p>`;
+        const { data, error } = await supabaseClient.rpc('list_market_tools');
+        if (error) {
+          toolGrid.innerHTML = `<p class="empty-state">${error.message || 'Could not load tools'}</p>`;
           return;
         }
-        tools = result.tools;
+        tools = data;
         renderTools();
       } catch (e) {
-        toolGrid.innerHTML = '<p class="empty-state">Network error — is Apache/MySQL running?</p>';
+        toolGrid.innerHTML = '<p class="empty-state">Network error.</p>';
       }
     }
 
@@ -491,10 +483,10 @@
       if (btnEl) btnEl.disabled = true;
 
       try {
-        const { status, data } = await apiPost('../api/market_get.php', { tool_id: tool.id });
+        const { data, error } = await supabaseClient.rpc('redeem_tool', { p_tool_id: tool.id });
 
-        if (!data.success) {
-          showLoadingError(data.message || 'Could not complete purchase');
+        if (error) {
+          showLoadingError(error.message || 'Could not complete purchase');
           setTimeout(hideLoadingOverlay, 1400);
           if (btnEl) btnEl.disabled = false;
           return;
@@ -543,7 +535,7 @@
       activeModalToolId = tool.id;
       const modalIconEl = document.getElementById('modalIcon');
       modalIconEl.innerHTML = tool.icon_image
-        ? `<img src="../${tool.icon_image}" alt="${tool.name}" style="width:100%;height:100%;object-fit:cover;border-radius:14px;">`
+        ? `<img src="${tool.icon_image}" alt="${tool.name}" style="width:100%;height:100%;object-fit:cover;border-radius:14px;">`
         : tool.icon;
       document.getElementById('modalName').textContent = tool.name;
       document.getElementById('modalCreator').textContent = `by ${tool.creator_username}`;
