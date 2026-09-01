@@ -99,6 +99,177 @@
     margin-top: 0;
   }
 
+  /* LIVE GRID MODAL (CSS-only, no JS) */
+  #statsToggle { display: none; }
+
+  .modal-wrap {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px 16px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease;
+  }
+  #statsToggle:checked ~ .modal-wrap {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .modal-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(2, 4, 3, 0.72);
+    backdrop-filter: blur(3px);
+    cursor: pointer;
+  }
+
+  .modal-panel {
+    position: relative;
+    z-index: 2;
+    width: min(420px, 100%);
+    max-height: 76vh;
+    background: var(--panel);
+    border: 1px solid var(--phosphor-dim);
+    border-radius: 14px;
+    box-shadow: 0 0 40px rgba(57,255,143,0.12), 0 20px 60px rgba(0,0,0,0.6);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transform: scale(0.94) translateY(10px);
+    transition: transform 0.28s cubic-bezier(.2,.9,.25,1.1);
+  }
+  #statsToggle:checked ~ .modal-wrap .modal-panel {
+    transform: scale(1) translateY(0);
+  }
+
+  .modal-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 16px 10px;
+    border-bottom: 1px solid var(--line);
+  }
+  .modal-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.9em;
+    letter-spacing: 2px;
+    color: var(--text);
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 0.6; transform: scale(0.85); }
+    50%      { opacity: 1; transform: scale(1.15); }
+  }
+  .modal-title .live-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--phosphor);
+    box-shadow: 0 0 6px var(--phosphor);
+    animation: pulse 1.4s ease-in-out infinite;
+  }
+
+  .cancel-btn {
+    display: inline-block;
+    background: transparent;
+    border: 1px solid var(--line);
+    color: var(--muted);
+    border-radius: 999px;
+    padding: 6px 14px;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.62em;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: border-color 0.2s ease, color 0.2s ease;
+  }
+  .cancel-btn:hover { border-color: var(--danger); color: var(--danger); }
+
+  .modal-summary {
+    display: flex;
+    gap: 10px;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--line);
+  }
+  .modal-summary .stat-block { flex: 1; }
+  .modal-summary .stat-num {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.1em;
+    color: var(--phosphor);
+    text-shadow: 0 0 10px var(--phosphor-glow);
+  }
+  .modal-summary .stat-lbl {
+    font-size: 0.58em;
+    color: var(--muted);
+    letter-spacing: 1.5px;
+    margin-top: 2px;
+  }
+
+  .live-list {
+    overflow-y: auto;
+    padding: 6px 10px 14px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    scrollbar-color: var(--phosphor-dim) transparent;
+  }
+  .live-list::-webkit-scrollbar { width: 5px; }
+  .live-list::-webkit-scrollbar-thumb { background: var(--phosphor-dim); border-radius: 4px; }
+
+  .live-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 10px;
+    border-bottom: 1px solid var(--line);
+  }
+  .live-card:last-child { border-bottom: none; }
+
+  .live-avatar {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #1a2920, #08100c);
+    border: 1.5px solid var(--phosphor-dim);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.68em;
+    font-weight: 700;
+    color: var(--phosphor);
+    flex-shrink: 0;
+    position: relative;
+  }
+  .live-avatar .status-dot {
+    position: absolute;
+    bottom: -1px; right: -1px;
+    width: 9px; height: 9px;
+    border-radius: 50%;
+    background: var(--phosphor);
+    border: 2px solid var(--panel);
+    box-shadow: 0 0 5px var(--phosphor);
+  }
+
+  .live-card-info { flex: 1; min-width: 0; }
+  .live-card-name {
+    font-size: 0.78em;
+    font-weight: 700;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .live-card-room {
+    font-size: 0.62em;
+    color: var(--amber);
+    white-space: nowrap;
+    margin-top: 2px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
   .spokes {
     position: relative;
     width: min(520px, 92vw);
@@ -430,7 +601,7 @@
           <circle id="nd-redeem" class="node" cx="78.85" cy="76.92" r="1.4"></circle>
         </svg>
 
-        <button class="spoke spoke--stats" type="button" data-action="stats"><span class="dot"></span>STATS</button>
+        <label for="statsToggle" class="spoke spoke--stats"><span class="dot"></span>STATS</label>
         <button class="spoke spoke--tournament" type="button" data-action="tournament"><span class="dot"></span>TOURNAMENT</button>
         <button class="spoke spoke--earn" type="button" data-action="earn"><span class="dot"></span>EARN</button>
         <button class="spoke spoke--redeem" type="button" data-action="redeem"><span class="dot"></span>REDEEM</button>
@@ -459,6 +630,85 @@
   </div>
 
   <div class="toast" id="toast"></div>
+
+  <input type="checkbox" id="statsToggle">
+  <div class="modal-wrap">
+    <label for="statsToggle" class="modal-overlay" aria-label="Close"></label>
+    <div class="modal-panel">
+      <div class="modal-head">
+        <div class="modal-title"><span class="live-dot"></span>ON THE GRID</div>
+        <label for="statsToggle" class="cancel-btn">CANCEL</label>
+      </div>
+      <div class="modal-summary">
+        <div class="stat-block">
+          <div class="stat-num">8</div>
+          <div class="stat-lbl">PLAYERS</div>
+        </div>
+        <div class="stat-block">
+          <div class="stat-num">6</div>
+          <div class="stat-lbl">ACTIVE ROOMS</div>
+        </div>
+      </div>
+      <div class="live-list">
+        <div class="live-card">
+          <div class="live-avatar">NY<span class="status-dot"></span></div>
+          <div class="live-card-info">
+            <div class="live-card-name">Nyx</div>
+            <div class="live-card-room">Vault #12</div>
+          </div>
+        </div>
+        <div class="live-card">
+          <div class="live-avatar">KA<span class="status-dot"></span></div>
+          <div class="live-card-info">
+            <div class="live-card-name">Kade_01</div>
+            <div class="live-card-room">Neon Circuit</div>
+          </div>
+        </div>
+        <div class="live-card">
+          <div class="live-avatar">SH<span class="status-dot"></span></div>
+          <div class="live-card-info">
+            <div class="live-card-name">ShadowFalcon</div>
+            <div class="live-card-room">Vault #12</div>
+          </div>
+        </div>
+        <div class="live-card">
+          <div class="live-avatar">RI<span class="status-dot"></span></div>
+          <div class="live-card-info">
+            <div class="live-card-name">Riri.exe</div>
+            <div class="live-card-room">Midnight Room</div>
+          </div>
+        </div>
+        <div class="live-card">
+          <div class="live-avatar">TO<span class="status-dot"></span></div>
+          <div class="live-card-info">
+            <div class="live-card-name">Tobi_G</div>
+            <div class="live-card-room">Grid Arena A</div>
+          </div>
+        </div>
+        <div class="live-card">
+          <div class="live-avatar">ZA<span class="status-dot"></span></div>
+          <div class="live-card-info">
+            <div class="live-card-name">Zaria</div>
+            <div class="live-card-room">Neon Circuit</div>
+          </div>
+        </div>
+        <div class="live-card">
+          <div class="live-avatar">PU<span class="status-dot"></span></div>
+          <div class="live-card-info">
+            <div class="live-card-name">Pulse</div>
+            <div class="live-card-room">High Stakes</div>
+          </div>
+        </div>
+        <div class="live-card">
+          <div class="live-avatar">KO<span class="status-dot"></span></div>
+          <div class="live-card-info">
+            <div class="live-card-name">Kojo</div>
+            <div class="live-card-room">Vault #07</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 
 <script>
   const KEY = 'grid_state_v1';
@@ -526,13 +776,12 @@
   });
 
   const routes = {
-    stats: 'Opening STATS…',
     tournament: 'Opening TOURNAMENT…',
     earn: 'Opening EARN…',
     redeem: 'Opening REDEEM…'
   };
 
-  document.querySelectorAll('.spoke').forEach(btn => {
+  document.querySelectorAll('.spoke[data-action]').forEach(btn => {
     btn.addEventListener('click', () => {
       const action = btn.dataset.action;
       showToast(routes[action] || 'Loading…');
