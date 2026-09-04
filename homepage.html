@@ -486,7 +486,7 @@
           <iframe class="panel" id="panel-blip" data-src="Blip/blip.html"></iframe>
           <iframe class="panel" id="panel-users" data-src="Users/users.html"></iframe>
           <iframe class="panel" id="panel-chats" data-src="Chats/chats.html"></iframe>
-          <iframe class="panel" id="panel-events" data-src="Game/lobby.html"></iframe>
+      
           <iframe class="panel" id="panel-topup" data-src="Top-up/top-up.html"></iframe>
           <iframe class="panel" id="panel-ledger" data-src="Transactions/transactions.html"></iframe>
           <iframe class="panel" id="panel-alerts" data-src="Notification/index.html"></iframe>
@@ -569,15 +569,21 @@
   const bannerEl = document.getElementById('banner');
 
   function loadPanelFor(radio) {
+    // GRID is a full-screen experience, not a dashboard panel — leave the shell entirely
+    if (radio.id === 'mod-events') {
+        window.location.href = 'Game/lobby.html';
+        return;
+    }
+
     const panelId = 'panel-' + radio.id.replace('mod-', '');
     const iframe = document.getElementById(panelId);
     if (iframe && !iframe.src && iframe.dataset.src) {
-      iframe.src = iframe.dataset.src;
+        iframe.src = iframe.dataset.src;
     }
     if (bannerEl && panelLabels[radio.id]) {
-      bannerEl.textContent = panelLabels[radio.id];
+        bannerEl.textContent = panelLabels[radio.id];
     }
-  }
+}
 
   document.querySelectorAll('input[name="module"]').forEach(radio => {
     radio.addEventListener('change', () => { if (radio.checked) loadPanelFor(radio); });
