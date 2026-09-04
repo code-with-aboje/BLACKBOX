@@ -1,0 +1,400 @@
+body{
+    padding: 0;
+    margin: 0;
+}
+.lobby-container{
+    background-image: url(Assets/lobby.png);
+    background-repeat: no-repeat;
+    background-size: cover;
+    height: 100vh;
+    width: 100vw;
+    overflow: hidden;
+    }
+.profile-nav {
+    width: 400px;
+    height: 60px;
+    position: absolute;
+    top:0;
+    left:0;
+
+    background: rgba(0, 0, 0, 0.50);
+    backdrop-filter: blur(10px);
+    box-shadow: rgb(0, 0, 0, 0.3);
+    clip-path: polygon(0 0, 92% 0, 100% 00%, 100% 70%, 92% 100%, 0 100%);
+}
+
+/* PROFILE & RANK */
+.profile-rank{
+    background:none;
+    height: inherit;
+    width: 200px;
+    display:flex;
+}
+
+.profile{
+    background:none;
+    border: 2px solid white;
+    height: inherit;
+    width: 60px;
+    position: relative;
+    box-shadow:inset 0px 1px 12px rgb(216, 68, 68);
+}
+
+.profile-card{
+    width: 160px;
+    height: inherit;
+    position: relative;
+}
+
+
+.profile-card label{
+    color: white;
+    top: 40%;
+    left: 10%;
+    font-weight: bold;
+    position: absolute;
+}
+.profile-card img{
+    width: inherit;
+    height: inherit;
+    
+}
+.profile img{
+    width: inherit;
+}
+.level{
+    background:none;
+    color: white;
+    font-weight: bold;
+    height: 15px;
+    width: 15px;
+    padding: 8px;
+    position: absolute;
+    bottom: 0;
+    right: 0;
+}
+
+.tokens{
+    
+    height: inherit;
+    width: auto;
+    position: absolute;
+    left: 65%;
+    display: flex;
+    align-items: center;
+}
+
+.tokens img{
+    width: 60px;
+    border-radius: 100%;
+}
+
+.tokens label{
+    color: white;
+}
+/* FRIEND LIST */
+.friend-list{
+    background: rgba(0, 0, 0, 0.50);
+    backdrop-filter: blur(10px);
+    height: 240px;
+    width: fit-content;
+    padding: 10px;
+    position: absolute;
+    top:50px;
+    right:0;
+    padding-bottom: 35px;
+}
+
+.friend-scroll{
+    height: 100%;
+    overflow: auto;
+}
+
+
+.friend-view{
+    padding: 2px;
+    height: auto;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding-bottom: 30px;
+    position: relative;
+    
+}
+
+#outsideName{
+    position: absolute;
+    top:74%;
+}
+
+.friend-icon{
+    background-image: url(Assets/profile-icons/prof-3.png);
+    border: 1px solid white;
+    height: 50px;
+    width: 50px;
+    position: relative;
+    flex-shrink: 0;
+    background-repeat: no-repeat;
+    background-size: contain;
+}
+.status{
+    background: rgb(9, 253, 9);
+    height: 15px;
+    width: 15px;
+    border-radius: 100%;
+    outline: none;
+    position: absolute;
+    top:80%;
+    left:80%;
+}
+
+.friend-details{
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    white-space: nowrap;
+    max-width: 0;
+    opacity: 0;
+    overflow: hidden;
+    transition: max-width 0.3s ease, opacity 0.2s ease;
+    position: relative;
+}
+
+.friend-list.expanded .friend-details{
+    max-width: 200px;
+    opacity: 1;
+}
+
+.rank-placeholder{
+    width: 26px;
+    height: 26px;
+    border-radius: 4px;
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.3);
+    flex-shrink: 0;
+}
+
+.add-btn{
+    flex-shrink: 0;
+    cursor: pointer;
+    display: flex;
+}
+
+.expand-arrow{
+    flex-shrink: 0;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.3s ease;
+    position: absolute;
+    top:90%;
+    left: 70%;
+}
+
+.friend-list.expanded .expand-arrow{
+    transform: rotate(180deg);
+}
+
+.player-name-stat label{
+    color: white;
+}
+
+
+/* =========================
+   PLAY BUTTON
+========================= */
+
+.play-btn {
+    width: 130px;
+    height: 48px;
+    border: 2px solid rgba(255, 255, 255, 0.85);
+    background: linear-gradient(180deg, #3ee619 0%, #21b600 45%, #189200 100%);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+    
+    backdrop-filter: blur(10px);
+    box-shadow:
+        0 3px 6px rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.5),
+        inset 0 -6px 10px rgba(0, 0, 0, 0.15);
+    color: white;
+    font-family: Arial, sans-serif;
+    font-size: 13px;
+    font-weight: bold;
+    letter-spacing: 1.5px;
+    cursor: pointer;
+    /* CUT CORNERS */
+    clip-path: polygon(
+        7% 0,
+        93% 0,
+        100% 25%,
+        100% 75%,
+        93% 100%,
+        7% 100%,
+        0 75%,
+        0 25%
+    );
+    transition: 0.15s ease;
+    /* POSITION */
+    position: absolute;
+    left:84%;
+    top: 85%;
+}
+
+/* HOVER */
+.play-btn:hover {
+    background: linear-gradient(180deg, #4dff26 0%, #2bd900 45%, #1ea300 100%);
+    box-shadow:
+        0 4px 10px rgba(33, 182, 0, 0.5),
+        inset 0 1px 0 rgba(255, 255, 255, 0.6),
+        inset 0 -6px 10px rgba(0, 0, 0, 0.15);
+    transform: scale(1.03);
+}
+/* CLICK */
+.play-btn:active {
+    background: linear-gradient(180deg, #189200 0%, #21b600 100%);
+    box-shadow:
+        0 1px 3px rgba(0, 0, 0, 0.4),
+        inset 0 2px 4px rgba(0, 0, 0, 0.3);
+    transform: scale(0.98);
+}
+
+
+/* MODE STATS */
+        .mode-stat{
+            
+            align-items: center;
+            gap: 5px;
+            position: absolute;
+            top:68%;
+            left:60%;
+        }
+        .holder{
+            position: relative;
+            height: inherit;
+            width: inherit;
+            
+        }
+        .rank{
+            background: rgba(0, 0, 0, 0.50);
+            height: 50px;
+            width: 130px;
+            right: 0;
+            margin-left: 30%;
+            border-top-left-radius: 5px;
+            border-top-right-radius: 5px;
+            display: flex;
+            align-items: center;
+            gap: 13px;
+        }
+        .rank-icon{
+            height: inherit;
+            width: 50%;
+           /* background: rgb(170, 156, 156); */
+           display: flex;
+           justify-content: center;
+           border-top: 1px solid white;
+           border-left: 1px solid white;
+           border-right:1px solid white ; 
+           margin-bottom:3%;
+           box-shadow:inset 0px 1px 12px rgb(216, 68, 68);
+        }
+
+        
+        .mode{
+            background: rgba(0, 0, 0, 0.50);
+            border: 1px solid white;
+            height: 60px;
+            width: 200px;
+
+            clip-path: polygon(
+            7% 0,
+            93% 0,
+            100% 25%,
+            100% 75%,
+            93% 100%,
+            7% 100%,
+            0 75%,
+            0 25%
+    );
+            
+        }
+
+
+        .mode-name{
+            color: orange;
+            font-weight: bold;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-size:1.2rem;
+            text-align: center;
+            padding-top: 3px;
+        }
+
+        .map-type{
+            color: white;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            text-align: center;
+        }
+
+.bottom-opt{
+    width: 400px;
+    height: 60px;
+    position: absolute;
+    bottom:0;
+    left:0;
+
+    background: rgba(0, 0, 0, 0.50);
+    backdrop-filter: blur(10px);
+    box-shadow: rgb(0, 0, 0, 0.3);
+    border-top-right-radius: 5px;
+    border-bottom-right-radius: 5px;
+    display: flex;
+    gap: 5px;
+    justify-content: space-between;
+}
+.bottom-opt div{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+.bottom-opt label{
+    color: white;
+}
+.vault{
+    border-right:1px solid white ;
+    height: inherit;
+    width: 200px;
+}
+.weapon{
+    border-right:1px solid white ;
+    height: inherit;
+    width: 200px;
+}
+.presets{
+    height: inherit;
+    width: 200px;
+}
+
+.vault:active,.weapon:active,.presets:active{
+    
+    box-shadow:
+        0 1px 3px rgba(0, 0, 0, 0.4),
+        inset 0 2px 4px rgba(0, 0, 0, 0.3);
+    transform: scale(0.98);
+}
+
+/* SETTING ARENA */
+.setting-arena{
+    width: 125px;
+    height: 45px;
+    position: absolute;
+    top:0;
+    right: 0;
+    background: rgba(0, 0, 0, 0.50);
+    backdrop-filter: blur(10px);
+    box-shadow: rgb(0, 0, 0, 0.3);
+    display: flex;
+    justify-content:right;
+    align-items: center;
+}
