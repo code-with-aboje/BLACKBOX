@@ -223,8 +223,8 @@ html, body{
 ========================= */
 
 .play-btn {
-    width: 100px;
-    height: 38px;
+    width: 130px;
+    height: 50px;
     border: 2px solid rgba(255, 255, 255, 0.85);
     background: linear-gradient(180deg, #3ee619 0%, #21b600 45%, #189200 100%);
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
@@ -236,7 +236,7 @@ html, body{
         inset 0 -6px 10px rgba(0, 0, 0, 0.15);
     color: white;
     font-family: Arial, sans-serif;
-    font-size: 11px;
+    font-size: 1.6rem;
     font-weight: bold;
     letter-spacing: 1.2px;
     cursor: pointer;
@@ -255,7 +255,7 @@ html, body{
     /* POSITION */
     position: absolute;
     left:84%;
-    top: 85%;
+    top: 86%;
 }
 
 /* HOVER */
@@ -283,8 +283,8 @@ html, body{
             align-items: center;
             gap: 5px;
             position: absolute;
-            top:73%;
-            left:65%;
+            top:77%;
+            left:66%;
         }
         .holder{
             position: relative;
