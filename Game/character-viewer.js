@@ -44,7 +44,9 @@ fillLight.position.set(-2, 2, -2);
 scene.add(fillLight);
 
 // ---------- CONTROLS (horizontal rotation only, slowed down) ----------
-const controls = new OrbitControls(camera, renderer.domElement);
+// const controls = new OrbitControls(camera, renderer.domElement);
+const dragZone = document.getElementById('rotate-hitzone') || container;
+const controls = new OrbitControls(camera, dragZone);
 controls.enableDamping = true;
 controls.minPolarAngle = Math.PI / 2;
 controls.maxPolarAngle = Math.PI / 2;
