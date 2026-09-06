@@ -97,7 +97,7 @@ html, body{
 #character-preview {
     position: absolute;
     top: -4%;
-    left: 50%;
+    left: 47%;
     transform: translateX(-50%);
     width: 340px;
     height: 480px;
