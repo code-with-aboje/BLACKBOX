@@ -206,9 +206,11 @@ html, body{
     border-right: none;
 }
 
-.friend-scroll{
+.friend-scroll {
     height: 100%;
     overflow: auto;
+    -webkit-overflow-scrolling: touch; /* smooth momentum scroll on iOS */
+    overscroll-behavior: contain;      /* stops scroll from "leaking" to the page behind it */
 }
 
 
