@@ -96,7 +96,7 @@ html, body{
 /* CHARACTER PREVIEW (3D model) */
 #character-preview {
     position: absolute;
-    top: -8%;
+    top: -4%;
     left: 50%;
     transform: translateX(-50%);
     width: 340px;
