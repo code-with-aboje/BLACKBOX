@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
     <link rel="stylesheet" href="lobby.css">
 </head>
@@ -12,7 +12,7 @@
             <div class="profile-rank">
                 <!-- ICON -->
                  <div class="profile">
-                    <img src="Assets/badges/bronse1.png" alt="" class=".img">
+                    <!-- <img src="Assets/badges/bronse1.png" alt="" class=".img"> -->
                     <!-- LEVEL -->
                      <div class="level">
                         <label for="level">50</label>
@@ -28,7 +28,10 @@
                  <!-- TOKENS -->
                   <div class="tokens">
                      <div class="icon">
-                        <img src="Assets/tokens (2).png" alt="">
+                        <!-- <img src="Assets/tokens (2).png" alt=""> -->
+                         <label for="token-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M9 20q-3.35 0-5.675-2.325T1 12q0-3.35 2.325-5.675T9 4q3.35 0 5.675 2.325T17 12q0 3.35-2.325 5.675T9 20Zm0-2q2.5 0 4.25-1.75T15 12q0-2.5-1.75-4.25T9 6Q6.5 6 4.75 7.75T3 12q0 2.5 1.75 4.25T9 18Zm0-2.5q.425 0 .713-.288T10 14.5v-4h1.25q.325 0 .537-.213T12 9.75q0-.325-.213-.537T11.25 9h-4.5q-.325 0-.537.213T6 9.75q0 .325.213.537t.537.213H8v4q0 .425.288.713T9 15.5ZM18.55 8l-.8-1.75l-1.75-.8q-.275-.125-.275-.45T16 4.55l1.75-.8l.8-1.75q.125-.275.45-.275t.45.275l.8 1.75l1.75.8q.275.125.275.45T22 5.45l-1.75.8l-.8 1.75q-.125.275-.45.275T18.55 8Zm0 14l-.8-1.75l-1.75-.8q-.275-.125-.275-.45t.275-.45l1.75-.8l.8-1.75q.125-.275.45-.275t.45.275l.8 1.75l1.75.8q.275.125.275.45t-.275.45l-1.75.8l-.8 1.75q-.125.275-.45.275T18.55 22ZM9 12Z"/></svg>
+                         </label>
                      </div>
                   <label for="amount" id="tokens">102</label>
                   </div>
@@ -170,6 +173,10 @@
         </label>
         <label for="settings" data-modal="settingsModal">
             <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 72 72"><circle cx="36.052" cy="34.906" r="5.614" fill="#fff"/><path fill="#d0cfce" d="M51.258 29.811s-1.815-.45-1.079-2.074l4.504-7.484l-3.65-3.417l-.73-.683l-7.136 4.69a1.652 1.652 0 0 1-2.28-1.12l-1.886-7.816h-6l-1.881 7.785c-.24.99-1.31 1.58-2.243 1.172l-.044-.02l-7.136-4.69l-.73.683l-3.65 3.417l4.504 7.484c.736 1.624-1.079 2.074-1.079 2.074l-8.476 2.108l.164 4.997l.033 1l8.363 1.729a1.65 1.65 0 0 1 .835 2.375l-.032.056l-4.504 7.484l3.65 3.417l.73.684l7.136-4.69l.044-.02l.034-.012c1.16-.376 2.393.347 2.679 1.533l1.795 7.433h6l1.887-7.815a1.652 1.652 0 0 1 2.279-1.12l7.136 4.69l.73-.684l3.65-3.417l-4.504-7.484l-.033-.056a1.65 1.65 0 0 1 .836-2.376l8.362-1.729l.033-1l.165-4.996zM36 44.906c-5.523 0-10-4.477-10-10s4.477-10 10-10s10 4.478 10 10s-4.477 10-10 10"/><path fill="#9b9b9a" d="M36 24.906c-5.523 0-10 4.478-10 10s4.477 10 10 10s10-4.477 10-10s-4.477-10-10-10m0 15a5 5 0 1 1 0-10a5 5 0 0 1 0 10"/><g fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><circle cx="36" cy="34.906" r="5"/><circle cx="36" cy="34.906" r="10"/><path d="M31.12 19.692c-.24.99-1.31 1.58-2.243 1.172l-.045-.02l-7.136-4.69l-.73.683l-3.65 3.417l4.504 7.484c.736 1.624-1.079 2.074-1.079 2.074l-8.476 2.108l.165 4.997l.033 1l8.362 1.729h0a1.65 1.65 0 0 1 .836 2.375l-.033.056l-4.504 7.484l3.65 3.417l.73.684l7.136-4.69l.045-.02l.033-.012c1.16-.376 2.393.347 2.68 1.533l1.794 7.433h6l1.887-7.815a1.652 1.652 0 0 1 2.28-1.12h0l7.135 4.69l.73-.684l3.65-3.417l-4.504-7.484l-.032-.056a1.65 1.65 0 0 1 .836-2.376h0l8.362-1.729l.033-1l.165-4.997l-8.477-2.107s-1.815-.45-1.078-2.074l4.503-7.484l-3.65-3.417l-.73-.684l-7.136 4.69h0a1.652 1.652 0 0 1-2.279-1.12L39 11.906h-6z"/></g></svg>
+        </label>
+
+        <label for="back" id="back">
+            <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 48 48"><path fill="none" stroke="#ffff" stroke-linejoin="round" stroke-width="4" d="M44 40.836q-7.34-8.96-13.036-10.168t-10.846-.365V41L4 23.545L20.118 7v10.167q9.523.075 16.192 6.833q6.668 6.758 7.69 16.836Z" clip-rule="evenodd"/></svg>
         </label>
      </div>
     <!-- LOBBY ENDING DIVS -->
