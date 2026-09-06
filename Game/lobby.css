@@ -23,11 +23,11 @@ html, body{
     }
 .profile-nav {
     width: 320px;
-    height: 48px;
+    height: 38px;
     position: absolute;
     top:0;
     left:0;
-
+    /* border: 1px solid white; */
     background: rgba(0, 0, 0, 0.50);
     backdrop-filter: blur(10px);
     box-shadow: rgb(0, 0, 0, 0.3);
@@ -49,6 +49,9 @@ html, body{
     width: 48px;
     position: relative;
     box-shadow:inset 0px 1px 12px rgb(216, 68, 68);
+    background-image: url(Assets/badges/bronse1.png);
+    background-repeat: no-repeat;
+    background-size: contain;
 }
 
 .profile-card{
@@ -73,6 +76,7 @@ html, body{
 }
 .profile img{
     width: inherit;
+    
 }
 .level{
     background:none;
@@ -83,8 +87,8 @@ html, body{
     width: 12px;
     padding: 6px;
     position: absolute;
-    bottom: 0;
-    right: 0;
+    bottom:30%;
+    right: 30%;
 }
 
 .tokens{
@@ -95,6 +99,7 @@ html, body{
     left: 65%;
     display: flex;
     align-items: center;
+    gap:5px;
 }
 
 .tokens img{
@@ -117,6 +122,8 @@ html, body{
     top:50px;
     right:0;
     padding-bottom: 28px;
+    border: 2px solid white;
+    border-right: none;
 }
 
 .friend-scroll{
@@ -406,7 +413,7 @@ html, body{
 
 /* SETTING ARENA */
 .setting-arena{
-    width: 100px;
+    width:auto;
     height: 36px;
     position: absolute;
     top:0;
@@ -418,7 +425,7 @@ html, body{
     justify-content:right;
     align-items: center;
     gap: 6px;
-    padding-right: 8px;
+    padding: 5px 10px;
 }
 
 
