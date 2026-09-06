@@ -48,7 +48,7 @@ const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 controls.minPolarAngle = Math.PI / 2;
 controls.maxPolarAngle = Math.PI / 2;
-controls.rotateSpeed = 0.4;
+controls.rotateSpeed = 0.8;
 
 // ---------- ANIMATION ----------
 let mixer = null;
