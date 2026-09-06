@@ -39,3 +39,25 @@ document.querySelectorAll('.modal-overlay').forEach(overlay => {
         if (e.target === overlay) overlay.classList.remove('active');
     });
 });
+
+// REDIRECTS TO HOMEPAGE
+
+const back = document.getElementById("back");
+back.addEventListener("click", ()=>{
+    window.location.href = "/homepage.html";
+})
+
+// CHECKS PHONE ORIENTATION
+let redirected = false;
+
+function checkOrientation() {
+  const isLandscape = window.matchMedia('(orientation: landscape)').matches;
+  if (!isLandscape && !redirected) {
+    redirected = true;
+    window.location.replace('/orientationCheck.html');
+  }
+}
+
+checkOrientation();
+window.addEventListener('resize', checkOrientation);
+screen.orientation?.addEventListener('change', checkOrientation);
