@@ -47,17 +47,51 @@ back.addEventListener("click", ()=>{
     window.location.href = "/homepage.html";
 })
 
-// CHECKS PHONE ORIENTATION
-let redirected = false;
+// LOADING OVERLAY: segmented progress bar driven by character-viewer.js
+const SEGMENT_COUNT = 20;
+const loadingOverlay = document.getElementById('loading-overlay');
+const loadingTrack = document.getElementById('loadingBarTrack');
+const loadingPct = document.getElementById('loadingBarPct');
 
-function checkOrientation() {
-  const isLandscape = window.matchMedia('(orientation: landscape)').matches;
-  if (!isLandscape && !redirected) {
-    redirected = true;
-    window.location.replace('/orientationCheck.html');
-  }
+if (loadingTrack) {
+    for (let i = 0; i < SEGMENT_COUNT; i++) {
+        const seg = document.createElement('div');
+        seg.className = 'loading-bar-seg';
+        loadingTrack.appendChild(seg);
+    }
+}
+const loadingSegments = loadingTrack ? loadingTrack.querySelectorAll('.loading-bar-seg') : [];
+
+function setLoadProgress(percent) {
+    const lit = Math.round((percent / 100) * SEGMENT_COUNT);
+    loadingSegments.forEach((seg, i) => seg.classList.toggle('lit', i < lit));
+    if (loadingPct) loadingPct.textContent = `${Math.round(percent)}%`;
 }
 
-checkOrientation();
+window.addEventListener('model-progress', (e) => setLoadProgress(e.detail.percent));
+
+window.addEventListener('model-ready', () => {
+    setLoadProgress(100);
+    setTimeout(() => {
+        loadingOverlay?.classList.add('hidden');
+        setTimeout(() => loadingOverlay?.remove(), 350); // clean up after fade completes
+    }, 250);
+});
+
+// CHECKS PHONE ORIENTATION — redirect to orientationCheck.html if rotated to portrait
+let redirected = false;
+let orientationCheckTimer = null;
+function checkOrientation() {
+  clearTimeout(orientationCheckTimer);
+  orientationCheckTimer = setTimeout(() => {
+    const isLandscape = window.matchMedia('(orientation: landscape)').matches;
+    if (!isLandscape && !redirected) {
+      redirected = true;
+      window.location.replace('/orientationCheck.html');
+    }
+  }, 300);
+}
+
+checkOrientation(); // in case the page is already loaded in portrait
 window.addEventListener('resize', checkOrientation);
 screen.orientation?.addEventListener('change', checkOrientation);
