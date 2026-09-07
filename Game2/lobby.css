@@ -80,6 +80,8 @@ html, body{
 
 html, body {
     background: #000;
+    overscroll-behavior: none;
+    touch-action: none; 
 }
 
 .lobby-container{
