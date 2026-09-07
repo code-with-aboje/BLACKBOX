@@ -1,5 +1,6 @@
 *{
     box-sizing: border-box;
+    font-family: 'Rajdhani', sans-serif;
 }
 
 /* ===== LOADING OVERLAY (matches orientationCheck.html) ===== */
@@ -76,18 +77,29 @@ html, body{
     height: 100%;
     width: 100%;
     overflow: hidden;
+    touch-action: none;
+    overscroll-behavior: none;
 }
 
 html, body {
     background: #000;
-    overscroll-behavior: none;
-    touch-action: none; 
+    
 }
 
-.lobby-container{
+/* Full-screen background layer: always covers the viewport, no bars, no cropping of UI */
+#scene-bg {
+    position: fixed;
+    inset: 0;
     background-image: url(Assets/lobby.png);
     background-repeat: no-repeat;
     background-size: cover;
+    background-position: center;
+    z-index: 0;
+
+}
+
+.lobby-container{
+    /* background image moved to #scene-bg so this stays transparent */
     position: fixed;
     top: 0;
     left: 0;
@@ -97,6 +109,7 @@ html, body {
     transform-origin: 0 0;
     /* transform (translate + scale) is set by resizeLobby() in lobby.js */
     will-change: transform;
+    padding:0;
     }
 /* CHARACTER PREVIEW (3D model) */
 #character-preview {
@@ -210,7 +223,7 @@ html, body {
     position: absolute;
     top:50px;
     right:0;
-    padding-bottom: 28px;
+      padding: 8px 4px 28px 4px;
     border: 2px solid white;
     border-right: none;
 }
@@ -227,7 +240,7 @@ html, body {
     height: auto;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 4px;
     padding-bottom: 24px;
     position: relative;
     
@@ -242,8 +255,8 @@ html, body {
 .friend-icon{
     background-image: url(Assets/profile-icons/prof-3.png);
     border: 1px solid white;
-    height: 40px;
-    width: 40px;
+   height: 36px;
+    width: 36px;
     position: relative;
     flex-shrink: 0;
     background-repeat: no-repeat;
@@ -322,8 +335,10 @@ html, body {
 .play-btn {
     width: 130px;
     height: 50px;
-    border: 2px solid rgba(255, 255, 255, 0.85);
-    background: linear-gradient(180deg, #3ee619 0%, #21b600 45%, #189200 100%);
+    border: none;
+    background-image: url(Assets/start_btn.png);
+    background-repeat: no-repeat;
+    background-size: 100% 100%;
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
     
     backdrop-filter: blur(10px);
@@ -331,23 +346,41 @@ html, body {
         0 3px 6px rgba(0, 0, 0, 0.4),
         inset 0 1px 0 rgba(255, 255, 255, 0.5),
         inset 0 -6px 10px rgba(0, 0, 0, 0.15);
-    color: white;
     font-family: Arial, sans-serif;
     font-size: 1.6rem;
     font-weight: bold;
     letter-spacing: 1.2px;
     cursor: pointer;
     /* CUT CORNERS */
-    clip-path: polygon(
-        7% 0,
-        93% 0,
-        100% 25%,
-        100% 75%,
-        93% 100%,
-        7% 100%,
-        0 75%,
-        0 25%
-    );
+clip-path: polygon(
+    0% 32%,
+    3% 22%,
+    3% 16%,
+    7% 16%,
+    9% 8%,
+    20% 8%,
+    22% 3%,
+    78% 3%,
+    80% 8%,
+    91% 8%,
+    93% 16%,
+    97% 16%,
+    100% 32%,
+
+    100% 68%,
+    97% 84%,
+    93% 84%,
+    91% 92%,
+    80% 92%,
+    78% 97%,
+
+    22% 97%,
+    20% 92%,
+    9% 92%,
+    7% 84%,
+    3% 84%,
+    0% 68%
+);
     transition: 0.15s ease;
     /* POSITION */
     position: absolute;
@@ -357,7 +390,6 @@ html, body {
 
 /* HOVER */
 .play-btn:hover {
-    background: linear-gradient(180deg, #4dff26 0%, #2bd900 45%, #1ea300 100%);
     box-shadow:
         0 4px 10px rgba(33, 182, 0, 0.5),
         inset 0 1px 0 rgba(255, 255, 255, 0.6),
@@ -366,7 +398,6 @@ html, body {
 }
 /* CLICK */
 .play-btn:active {
-    background: linear-gradient(180deg, #189200 0%, #21b600 100%);
     box-shadow:
         0 1px 3px rgba(0, 0, 0, 0.4),
         inset 0 2px 4px rgba(0, 0, 0, 0.3);
@@ -420,19 +451,7 @@ html, body {
             border-top: 2px solid white;
             border-bottom: 2px solid white;
             height: 48px;
-            width: 160px;
-
-            clip-path: polygon(
-            7% 0,
-            93% 0,
-            100% 25%,
-            100% 75%,
-            93% 100%,
-            7% 100%,
-            0 75%,
-            0 25%
-    );
-            
+            width: 160px;            
         }
 
 
@@ -454,7 +473,7 @@ html, body {
 
 .bottom-opt{
     width: 320px;
-    height: 38px;
+    height: 30px;
     position: absolute;
     bottom:0;
     left:0;
