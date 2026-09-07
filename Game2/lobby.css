@@ -98,24 +98,32 @@ html, body {
 
 }
 
+.uiElements{
+    background:blue;
+    height:100vh;
+    width:100%;
+    position:fixed;
+    overflow: hidden;
+
+}
+
 .lobby-container{
-    /* background image moved to #scene-bg so this stays transparent */
     position: fixed;
     top: 0;
     left: 0;
     height: 412px;
-    width: 915px;
+    /* width is handled dynamically in JS */
     overflow: hidden;
     transform-origin: 0 0;
-    /* transform (translate + scale) is set by resizeLobby() in lobby.js */
     will-change: transform;
-    padding:0;
+    padding: 0;
+    margin: 0;
     }
 /* CHARACTER PREVIEW (3D model) */
 #character-preview {
-    position: absolute;
+  position: absolute;
     top: -4%;
-    left: 47%;
+    left: 50%;
     transform: translateX(-50%);
     width: 340px;
     height: 480px;
@@ -384,7 +392,7 @@ clip-path: polygon(
     transition: 0.15s ease;
     /* POSITION */
     position: absolute;
-    left:84%;
+    right: 20px;
     top: 86%;
 }
 
@@ -411,8 +419,8 @@ clip-path: polygon(
             align-items: center;
             gap: 5px;
             position: absolute;
-            top:77%;
-            left:66%;
+           right: 160px;
+           top: 77%;
         }
         .holder{
             position: relative;

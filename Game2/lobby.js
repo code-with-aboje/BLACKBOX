@@ -4,15 +4,20 @@
 const DESIGN_W = 915;
 const DESIGN_H = 412;
 const lobbyContainer = document.querySelector('.lobby-container');
-
 function resizeLobby() {
     if (!lobbyContainer) return;
     const vw = window.innerWidth;
     const vh = window.innerHeight;
-    const scale = Math.min(vw / DESIGN_W, vh / DESIGN_H);
-    const offsetX = (vw - DESIGN_W * scale) / 2;
-    const offsetY = (vh - DESIGN_H * scale) / 2;
-    lobbyContainer.style.transform = `translate(${offsetX}px, ${offsetY}px) scale(${scale})`;
+    
+    // Scale container to fit screen height
+    const scale = vh / DESIGN_H;
+    
+    // Dynamically expand container width to fill full viewport width
+    const scaledWidth = vw / scale;
+    
+    lobbyContainer.style.width = `${scaledWidth}px`;
+    lobbyContainer.style.height = `${DESIGN_H}px`;
+    lobbyContainer.style.transform = `scale(${scale})`;
 }
 
 resizeLobby();
