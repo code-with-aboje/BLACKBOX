@@ -51,6 +51,8 @@ controls.enableDamping = true;
 controls.minPolarAngle = Math.PI / 2;
 controls.maxPolarAngle = Math.PI / 2;
 controls.rotateSpeed = 1;
+controls.enableZoom = false;
+controls.enablePan = false;
 
 // ---------- ANIMATION ----------
 let mixer = null;
