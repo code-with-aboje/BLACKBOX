@@ -334,7 +334,7 @@ html, body {
 
 .play-btn {
     width: 130px;
-    height: 50px;
+    height: 60px;
     border: none;
     background-image: url(Assets/start_btn.png);
     background-repeat: no-repeat;
