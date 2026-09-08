@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Sensitivity</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #171310;
+    --panel: rgba(36, 24, 18, 0.9);
+    --panel-2: rgba(46, 33, 25, 0.92);
+    --line: #4A2F22;
+    --maroon: #6B1E1E;
+    --amber: #F5943C;
+    --amber-deep: #D9702A;
+    --text: #F3E9DD;
+    --text-dim: #B99C85;
+    --text-faint: #7A5F4E;
+    --track: #3A2A20;
+  }
+  *{ box-sizing: border-box; margin:0; padding:0; }
+  html,body{ height:100%; }
+  body{
+    background: radial-gradient(ellipse at 30% 0%, #3a2416 0%, transparent 55%), var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    height:100%;
+    display:flex;
+    padding: 10px;
+    gap: 10px;
+    overflow: hidden;
+  }
+
+  /* ---------- Left preview panel ---------- */
+  .preview-panel{
+    width: 220px;
+    min-width: 220px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .preview-frame{
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16/11;
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    overflow: hidden;
+    background-image: url(../Assets/lobby.png);
+    background-size: cover;
+    background-position: center;
+  }
+  .preview-frame::after{
+    content:"";
+    position:absolute;
+    inset:0;
+    background: rgba(10,7,5,0.35);
+  }
+  .rotation-arrow{
+    position:absolute;
+    top: 20%;
+    left: 55%;
+    width: 60px;
+    height: 60px;
+    z-index: 1;
+    opacity: 0.9;
+    animation: nudge 1.4s ease-in-out infinite;
+  }
+  @keyframes nudge{
+    0%, 100% { transform: translateX(0); }
+    50% { transform: translateX(6px); }
+  }
+  .preview-caption{
+    font-size: 11px;
+    color: var(--text-dim);
+    line-height: 1.4;
+  }
+  .preview-caption b{
+    color: var(--amber);
+    font-weight: 600;
+  }
+  .reset-btn{
+    margin-top: auto;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    border: 1px solid var(--line);
+    background: var(--panel);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--text-dim);
+    transition: color .15s ease, border-color .15s ease;
+  }
+  .reset-btn:hover{ color: var(--amber); border-color: var(--amber); }
+  .reset-btn svg{ width: 15px; height: 15px; }
+
+  /* ---------- Right sliders panel ---------- */
+  .sliders-panel{
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+  }
+  .sliders-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--line);
+  }
+  .sliders-title{
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    font-size: 13px;
+    color: var(--text);
+    display:flex;
+    align-items:center;
+    gap: 8px;
+  }
+  .help-badge{
+    width: 15px; height: 15px;
+    border-radius: 50%;
+    border: 1px solid var(--text-faint);
+    color: var(--text-faint);
+    font-size: 10px;
+    display:flex; align-items:center; justify-content:center;
+    cursor: default;
+  }
+  .preset-select{
+    display:flex;
+    align-items:center;
+    gap: 8px;
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 600;
+    letter-spacing: .04em;
+    font-size: 12px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+  }
+  .preset-select select{
+    background: var(--panel-2);
+    border: 1px solid var(--line);
+    color: var(--text);
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 600;
+    font-size: 12px;
+    padding: 4px 8px;
+    border-radius: 2px;
+    cursor: pointer;
+  }
+
+  .slider-list{
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+  }
+  .slider-row{
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 10px 14px;
+    border-bottom: 1px solid rgba(74,47,34,0.5);
+    transition: background .15s ease;
+  }
+  .slider-row:hover{ background: rgba(245,148,60,0.05); }
+  .slider-label{
+    width: 130px;
+    min-width: 130px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+  }
+  .slider-value{
+    width: 34px;
+    min-width: 34px;
+    text-align: center;
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    color: var(--amber);
+  }
+  .step-btn{
+    width: 22px; height: 22px;
+    min-width: 22px;
+    border-radius: 3px;
+    border: none;
+    background: var(--panel-2);
+    color: var(--text-dim);
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background .15s ease, color .15s ease;
+  }
+  .step-btn:hover{ background: var(--maroon); color: var(--text); }
+  .step-btn:active{ transform: scale(0.92); }
+
+  .slider-track-wrap{
+    flex: 1;
+    position: relative;
+    height: 20px;
+    display: flex;
+    align-items: center;
+  }
+  input[type="range"]{
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 4px;
+    background: transparent;
+    cursor: pointer;
+    margin: 0;
+  }
+  input[type="range"]::-webkit-slider-runnable-track{
+    height: 4px;
+    background: var(--track);
+    border-radius: 2px;
+  }
+  input[type="range"]::-webkit-slider-thumb{
+    -webkit-appearance: none;
+    appearance: none;
+    width: 14px;
+    height: 14px;
+    margin-top: -5px;
+    background: var(--text);
+    border: 2px solid var(--amber);
+    border-radius: 2px;
+    cursor: pointer;
+  }
+  input[type="range"]::-moz-range-track{
+    height: 4px;
+    background: var(--track);
+    border-radius: 2px;
+  }
+  input[type="range"]::-moz-range-thumb{
+    width: 12px;
+    height: 12px;
+    background: var(--text);
+    border: 2px solid var(--amber);
+    border-radius: 2px;
+    cursor: pointer;
+  }
+  .slider-fill{
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    height: 4px;
+    background: linear-gradient(90deg, var(--amber-deep), var(--amber));
+    border-radius: 2px;
+    pointer-events: none;
+  }
+
+  .sliders-foot{
+    display:flex;
+    justify-content: flex-end;
+    padding: 8px 14px;
+  }
+  .training-link{
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    font-size: 12px;
+    color: var(--amber);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    cursor: pointer;
+  }
+  .training-link:hover{ color: var(--amber-deep); }
+
+  ::-webkit-scrollbar{ width: 6px; }
+  ::-webkit-scrollbar-thumb{ background: var(--line); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+  <div class="preview-panel">
+    <div class="preview-frame">
+      <svg class="rotation-arrow" viewBox="0 0 24 24" fill="none" stroke="#F5943C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M5 12h14M13 6l6 6-6 6"/>
+      </svg>
+    </div>
+    <div class="preview-caption">The sensitivity of <b>camera rotation</b></div>
+    <div class="reset-btn" id="resetAll" title="Reset to default">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M1 4v6h6"/>
+        <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/>
+      </svg>
+    </div>
+  </div>
+
+  <div class="sliders-panel">
+    <div class="sliders-head">
+      <div class="sliders-title">
+        Sensitivity
+        <span class="help-badge">?</span>
+      </div>
+      <div class="preset-select">
+        <span>Default</span>
+        <select id="presetSelect">
+          <option value="default">Default</option>
+          <option value="low">Low</option>
+          <option value="high">High</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="slider-list" id="sliderList">
+      <!-- rows injected by JS -->
+    </div>
+
+    <div class="sliders-foot">
+      <a class="training-link" href="#">TRAINING&nbsp;&raquo;</a>
+    </div>
+  </div>
+
+<script>
+  const SENSITIVITIES = [
+    { key: 'general',    label: 'General',            value: 150 },
+    { key: 'redDot',     label: 'Red Dot',            value: 200 },
+    { key: 'scope2x',    label: '2x Scope',           value: 170 },
+    { key: 'scope4x',    label: '4x Scope',           value: 170 },
+    { key: 'sniper',     label: 'Sniper Scope',       value: 120 },
+    { key: 'freeCamera', label: 'Free Camera Button', value: 100 },
+  ];
+
+  const DEFAULTS = Object.fromEntries(SENSITIVITIES.map(s => [s.key, s.value]));
+  const MIN = 0;
+  const MAX = 200;
+
+  const list = document.getElementById('sliderList');
+
+  function buildRow(item){
+    const row = document.createElement('div');
+    row.className = 'slider-row';
+    row.innerHTML = `
+      <div class="slider-label">${item.label}</div>
+      <div class="slider-value" id="val-${item.key}">${item.value}</div>
+      <button class="step-btn" data-key="${item.key}" data-dir="-1" aria-label="Decrease ${item.label}">&minus;</button>
+      <div class="slider-track-wrap">
+        <div class="slider-fill" id="fill-${item.key}"></div>
+        <input type="range" min="${MIN}" max="${MAX}" value="${item.value}" id="range-${item.key}" data-key="${item.key}">
+      </div>
+      <button class="step-btn" data-key="${item.key}" data-dir="1" aria-label="Increase ${item.label}">+</button>
+    `;
+    return row;
+  }
+
+  SENSITIVITIES.forEach(item => list.appendChild(buildRow(item)));
+
+  function setValue(key, value){
+    value = Math.max(MIN, Math.min(MAX, value));
+    document.getElementById(`range-${key}`).value = value;
+    document.getElementById(`val-${key}`).textContent = value;
+    document.getElementById(`fill-${key}`).style.width = `${(value / MAX) * 100}%`;
+  }
+
+  SENSITIVITIES.forEach(item => setValue(item.key, item.value));
+
+  list.addEventListener('input', (e) => {
+    if (e.target.matches('input[type="range"]')){
+      const key = e.target.dataset.key;
+      setValue(key, parseInt(e.target.value, 10));
+    }
+  });
+
+  list.addEventListener('click', (e) => {
+    const btn = e.target.closest('.step-btn');
+    if (!btn) return;
+    const key = btn.dataset.key;
+    const dir = parseInt(btn.dataset.dir, 10);
+    const current = parseInt(document.getElementById(`range-${key}`).value, 10);
+    setValue(key, current + dir * 10);
+  });
+
+  document.getElementById('resetAll').addEventListener('click', () => {
+    SENSITIVITIES.forEach(item => setValue(item.key, DEFAULTS[item.key]));
+  });
+</script>
+</body>
+</html>

@@ -51,20 +51,20 @@ document.querySelectorAll('[data-modal]').forEach(trigger => {
         document.getElementById(trigger.dataset.modal).classList.add('active');
     });
 });
-
 // Close via X button
 document.querySelectorAll('[data-close]').forEach(btn => {
     btn.addEventListener('click', () => {
         document.getElementById(btn.dataset.close).classList.remove('active');
     });
 });
-
 // Close by clicking outside the box
 document.querySelectorAll('.modal-overlay').forEach(overlay => {
     overlay.addEventListener('click', (e) => {
         if (e.target === overlay) overlay.classList.remove('active');
     });
 });
+
+
 
 // REDIRECTS TO HOMEPAGE
 
@@ -121,3 +121,82 @@ function checkOrientation() {
 checkOrientation(); // in case the page is already loaded in portrait
 window.addEventListener('resize', checkOrientation);
 screen.orientation?.addEventListener('change', checkOrientation);
+
+
+
+// SETTINGS CONTENT
+
+const settingsContainer = document.querySelector('.settings-container');
+
+function resizeSettings() {
+    if (!settingsContainer) return;
+
+    // Don't stretch the landscape design into a portrait frame —
+    // checkOrientation() is about to redirect to the rotate prompt.
+    const isLandscape = window.matchMedia('(orientation: landscape)').matches;
+    if (!isLandscape) return;
+
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+
+    const scale = vh / DESIGN_H;
+    const scaledWidth = vw / scale;
+
+    settingsContainer.style.width = `${scaledWidth}px`;
+    settingsContainer.style.height = `${DESIGN_H}px`;
+    settingsContainer.style.transform = `scale(${scale})`;
+}
+
+resizeSettings();
+window.addEventListener('resize', resizeSettings);
+screen.orientation?.addEventListener('change', resizeSettings);
+
+// SETTINGS TAB + SIDEBAR SWITCHING
+const settingsTabs = document.querySelectorAll('#settingsModal .tab');
+const settingsFrame = document.getElementById('contentFrame');
+
+settingsTabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+        const page = tab.dataset.page;
+        if (page === 'pages/sensitivity.html') {
+            window.location.href = page;
+            return;
+        }
+        settingsTabs.forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        settingsFrame.src = page;
+    });
+});
+
+const settingsSideItems = document.querySelectorAll('#settingsModal .side-item');
+settingsSideItems.forEach(item => {
+    item.addEventListener('click', () => {
+        settingsSideItems.forEach(i => i.classList.remove('active'));
+        item.classList.add('active');
+        settingsFrame.src = item.dataset.page;
+    });
+});
+
+// STORE TAB + SIDEBAR SWITCHING
+const storeTabs = document.querySelectorAll('#storeModal .tab');
+const storeFrame = document.getElementById('storeContentFrame');
+
+storeTabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+        storeTabs.forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        storeFrame.src = tab.dataset.page;
+    });
+});
+
+const storeSideItems = document.querySelectorAll('#storeModal .side-item');
+storeSideItems.forEach(item => {
+    item.addEventListener('click', () => {
+        storeSideItems.forEach(i => i.classList.remove('active'));
+        item.classList.add('active');
+        storeFrame.src = item.dataset.page;
+    });
+});
+
+
+

@@ -4,11 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Document</title>
+    <style>html, body { background: #000; }</style>
     <link rel="stylesheet" href="lobby.css">
+    <link rel="stylesheet" href="modal.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;600;700;800;900&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
-    
-    
 </head>
 <body>
     <div id="scene-bg"></div>
@@ -33,7 +35,24 @@
         <div id="character-preview"></div>
         <div id="rotate-hitzone"></div>
 
-        
+        <!-- LEFT PANEL -->
+        <div class="left_panel">
+    <!-- STORE -->
+    <div class="store" tabindex="0" data-modal="storeModal">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+            <path fill="#ffffff" d="M16 18a2 2 0 0 1 2 2a2 2 0 0 1-2 2a2 2 0 0 1-2-2a2 2 0 0 1 2-2m0 1a1 1 0 0 0-1 1a1 1 0 0 0 1 1a1 1 0 0 0 1-1a1 1 0 0 0-1-1m-9-1a2 2 0 0 1 2 2a2 2 0 0 1-2 2a2 2 0 0 1-2-2a2 2 0 0 1 2-2m0 1a1 1 0 0 0-1 1a1 1 0 0 0 1 1a1 1 0 0 0 1-1a1 1 0 0 0-1-1M18 6H4.27l2.55 6H15c.33 0 .62-.16.8-.4l3-4c.13-.17.2-.38.2-.6a1 1 0 0 0-1-1m-3 7H6.87l-.77 1.56L6 15a1 1 0 0 0 1 1h11v1H7a2 2 0 0 1-2-2a2 2 0 0 1 .25-.97l.72-1.47L2.34 4H1V3h2l.85 2H18a2 2 0 0 1 2 2c0 .5-.17.92-.45 1.26l-2.91 3.89c-.36.51-.96.85-1.64.85"/>
+        </svg>
+        <span>STORE</span>
+    </div>
+
+    <!-- MISSIONS -->
+    <div class="missions" tabindex="0">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+            <path fill="#ffffff" d="M12 2A10 10 0 1 0 22 12A10 10 0 0 0 12 2m0 18a8 8 0 1 1 8-8a8 8 0 0 1-8 8m1-13h-2v6l5.2 3.2l1-1.6l-4.2-2.6Z"/>
+        </svg>
+        <span>MISSIONS</span>
+    </div>
+</div>
         <div class="profile-nav">
             <div class="profile-rank">
                 <!-- ICON -->
@@ -210,16 +229,80 @@
 </div>
 
 <!-- MODALS -->
- <!-- add this right before <script src="lobby.js"></script> -->
+<!-- SETTING MODAL -->
 <div class="modal-overlay" id="settingsModal">
-  <div class="modal-box">
-    <button class="modal-close" data-close="settingsModal">&times;</button>
-    <h2 style="color: white;">Settings</h2>
-    
+  <!-- <div class="modal-box"> BEGINING OF MODAL BOX (OPTIONAL) -->
+    <div class="settings-container">
+
+<nav class="sidebar">
+  <a class="side-item" data-page="LobbySettings/sound.html">Sound</a>
+  <!-- <a class="side-item" href="account.html">Account &amp; Basic</a> -->
+
+  <div class="side-spacer"></div>
+
+  <div class="side-footer">
+    <div class="region">MIDDLE EAST &amp; AFRICA</div>
   </div>
+</nav>
+
+    <div class="main">
+      <div class="topbar">
+        <span class="settings-label">SETTINGS</span>
+        <div class="close-btn" id="closeSettings" data-close="settingsModal">&#10005;</div>
+      </div>
+
+      <div class="tabbar" id="tabbar">
+        <div class="tab active" data-page="LobbySettings/hud.html">HUD</div>
+        <!-- <div class="tab" data-page="LobbySettings/control.html">Controls</div> -->
+        <div class="tab" data-page="LobbySettings/sensitivity.html">Sensitivity</div>
+        <div class="tab" data-page="LobbySettings/autopickup.html">Auto Pickup</div>
+        <div class="tab" data-page="LobbySettings/vibration.html">Vibration</div>
+      </div>
+
+      <div class="frame-wrap">
+        <iframe id="contentFrame" src="LobbySettings//hud.html" title="Settings content"></iframe>
+      </div>
+    </div>
+
+  </div>
+  <!-- </div> END OF MODAL BOX(OPTIONAL) -->
 </div>
 
+<!-- STORE MODAL -->
+<div class="modal-overlay" id="storeModal">
+  <div class="settings-container">
 
+    <nav class="sidebar">
+      <a class="side-item active" data-page="Store/featured.html">Featured</a>
+      <a class="side-item" data-page="Store/skins.html">Skins</a>
+      <a class="side-item" data-page="Store/bundles.html">Bundles</a>
+
+      <div class="side-spacer"></div>
+
+      <div class="side-footer">
+        <div class="region">MIDDLE EAST &amp; AFRICA</div>
+      </div>
+    </nav>
+
+    <div class="main">
+      <div class="topbar">
+        <span class="settings-label">STORE</span>
+        <div class="close-btn" id="closeStore" data-close="storeModal">&#10005;</div>
+      </div>
+
+      <div class="tabbar" id="storeTabbar">
+        <div class="tab active" data-page="Store/featured.html">All Items</div>
+        <div class="tab" data-page="Store/weapons.html">Weapons</div>
+        <div class="tab" data-page="Store/characters.html">Characters</div>
+      </div>
+
+      <div class="frame-wrap">
+        <iframe id="storeContentFrame"class="store_frame" src="Store/featured.html" title="Store content" ></iframe>
+      </div>
+    </div>
+    <!-- DISPLAY OTHER UI ELEMENTS HERE -->
+  </div>
+</div>
 
 <script type="importmap">
 {

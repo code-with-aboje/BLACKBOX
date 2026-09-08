@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Weapons</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #171310;
+    --panel: rgba(36, 24, 18, 0.9);
+    --panel-2: rgba(46, 33, 25, 0.92);
+    --line: #4A2F22;
+    --maroon: #6B1E1E;
+    --amber: #F5943C;
+    --amber-deep: #D9702A;
+    --text: #F3E9DD;
+    --text-dim: #B99C85;
+    --text-faint: #7A5F4E;
+  }
+  *{ box-sizing: border-box; margin:0; padding:0; }
+  html,body{ height:100%; }
+  body{
+    background: radial-gradient(ellipse at 30% 0%, #3a2416 0%, transparent 55%), var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    height:100%;
+    overflow-y:auto;
+  }
+
+  .store-grid{
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 12px;
+    padding: 14px;
+  }
+
+  .weapon-card{
+    background: var(--panel-2);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform .15s ease, border-color .15s ease, box-shadow .15s ease;
+    display: flex;
+    flex-direction: column;
+  }
+  .weapon-card:hover{
+    transform: translateY(-3px);
+    border-color: var(--amber);
+    box-shadow: 0 6px 14px rgba(0,0,0,0.4);
+  }
+
+  .weapon-thumb{
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    background:
+      radial-gradient(ellipse at 50% 30%, rgba(245,148,60,0.12) 0%, transparent 65%),
+      linear-gradient(160deg, #241a14 0%, #140f0c 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 14px;
+  }
+  .weapon-thumb img{
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    filter: drop-shadow(0 4px 6px rgba(0,0,0,0.5));
+  }
+
+  .rarity-tag{
+    position: absolute;
+    top: 6px;
+    left: 6px;
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    font-size: 9px;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    padding: 2px 6px;
+    border-radius: 2px;
+    color: #241812;
+  }
+  .rarity-legendary{ background: linear-gradient(90deg, #F5943C, #FFD37A); }
+  .rarity-epic{ background: linear-gradient(90deg, #9B5DE5, #C79BFF); color: #1b1230; }
+  .rarity-rare{ background: linear-gradient(90deg, #4CA6E0, #8FD0FF); color: #0f2233; }
+
+  .weapon-info{
+    padding: 8px 10px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .weapon-name{
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: .02em;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .weapon-type{
+    font-size: 10px;
+    color: var(--text-faint);
+    text-transform: uppercase;
+    letter-spacing: .04em;
+  }
+
+  .weapon-price{
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: 2px;
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    color: var(--amber);
+  }
+  .weapon-price svg{
+    width: 13px;
+    height: 13px;
+    flex-shrink: 0;
+  }
+
+  ::-webkit-scrollbar{ width: 6px; }
+  ::-webkit-scrollbar-thumb{ background: var(--line); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+  <div class="store-grid" id="weaponGrid"></div>
+
+<script>
+  const tokenIcon = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 20q-3.35 0-5.675-2.325T1 12q0-3.35 2.325-5.675T9 4q3.35 0 5.675 2.325T17 12q0 3.35-2.325 5.675T9 20Zm0-2q2.5 0 4.25-1.75T15 12q0-2.5-1.75-4.25T9 6Q6.5 6 4.75 7.75T3 12q0 2.5 1.75 4.25T9 18Zm0-2.5q.425 0 .713-.288T10 14.5v-4h1.25q.325 0 .537-.213T12 9.75q0-.325-.213-.537T11.25 9h-4.5q-.325 0-.537.213T6 9.75q0 .325.213.537t.537.213H8v4q0 .425.288.713T9 15.5ZM18.55 8l-.8-1.75l-1.75-.8q-.275-.125-.275-.45T16 4.55l1.75-.8l.8-1.75q.125-.275.45-.275t.45.275l.8 1.75l1.75.8q.275.125.275.45T22 5.45l-1.75.8l-.8 1.75q-.125.275-.45.275T18.55 8Z"/></svg>`;
+
+  const weapons = [
+    { name: "Vortex AR-7", type: "Assault Rifle", rarity: "legendary", price: 999, img: "" },
+    { name: "Phantom SMG", type: "SMG", rarity: "epic", price: 599, img: "" },
+    { name: "Ashfang Sniper", type: "Sniper Rifle", rarity: "legendary", price: 1299, img: "" },
+    { name: "Rustclaw Pistol", type: "Pistol", rarity: "rare", price: 249, img: "" },
+    { name: "Grim Reaper", type: "Shotgun", rarity: "epic", price: 799, img: "" },
+    { name: "Nova Blade", type: "Melee", rarity: "rare", price: 199, img: "" },
+  ];
+
+  const rarityLabel = { legendary: "Legendary", epic: "Epic", rare: "Rare" };
+
+  const grid = document.getElementById('weaponGrid');
+  grid.innerHTML = weapons.map(w => `
+    <div class="weapon-card">
+      <div class="weapon-thumb">
+        <span class="rarity-tag rarity-${w.rarity}">${rarityLabel[w.rarity]}</span>
+        ${w.img ? `<img src="${w.img}" alt="${w.name}">` : ''}
+      </div>
+      <div class="weapon-info">
+        <div class="weapon-name">${w.name}</div>
+        <div class="weapon-type">${w.type}</div>
+        <div class="weapon-price">${tokenIcon}${w.price}</div>
+      </div>
+    </div>
+  `).join('');
+
+  grid.addEventListener('click', (e) => {
+    const card = e.target.closest('.weapon-card');
+    if (card) {
+      console.log('Selected weapon:', card.querySelector('.weapon-name').textContent);
+    }
+  });
+</script>
+</body>
+</html>
