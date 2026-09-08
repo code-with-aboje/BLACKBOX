@@ -1,6 +1,8 @@
 *{
     box-sizing: border-box;
     font-family: 'Rajdhani', sans-serif;
+    touch-action: none;
+    overscroll-behavior: none;
 }
 
 /* ===== LOADING OVERLAY (matches orientationCheck.html) ===== */
