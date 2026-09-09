@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Settings</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+<style>
+  /* ---------- Reset ---------- */
+  *{
+      box-sizing: border-box;
+      font-family: 'Rajdhani', sans-serif;
+  }
+
+  html, body{
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      width: 100%;
+      overflow: hidden;
+      touch-action: none;
+      overscroll-behavior: none;
+      background: #000;
+  }
+
+  /* FIXED DESIGN CANVAS — scaled to fit viewport by settings.js */
+  .stg-container{
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 412px;
+      /* width is handled dynamically in JS */
+      overflow: hidden;
+      transform-origin: 0 0;
+      will-change: transform;
+      padding: 0;
+      margin: 0;
+      display: flex;
+      z-index: 1;
+      font-family: 'Inter', sans-serif;
+      color: #F3E9DD;
+  }
+  /* ---------- Main panel ---------- */
+  .stg-main{
+      flex: 1;
+      height: 412px;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+  }
+
+  /* ---------- Top bar ---------- */
+  .stg-topbar{
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 12px;
+      padding: 10px 18px;
+      border-bottom: 1px solid #4A2F22;
+      background: rgba(0,0,0,0.2);
+  }
+  .stg-icon{
+      display: flex;
+      align-items: center;
+  }
+  .stg-title{
+      font-family: 'Rajdhani', sans-serif;
+      font-weight: 700;
+      letter-spacing: .08em;
+      color: var(--text-dim);
+      font-size: 12px;
+      margin-right: auto;
+  }
+  .stg-close-btn{
+      width: 22px; height: 22px;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--text-dim);
+      cursor: pointer;
+      font-size: 14px;
+      border-left: 2px solid var(--amber);
+      padding-left: 10px;
+      transition: color .15s ease;
+  }
+  .stg-close-btn:hover{ color: var(--text); }
+
+  /* ---------- Tab bar ---------- */
+  .stg-tabbar{
+      display: flex;
+      background: linear-gradient(180deg, rgba(46,33,25,0.9) 0%, rgba(34,24,18,0.9) 100%);
+      border-bottom: 1px solid var(--line);
+      padding: 0 6px;
+      overflow-x: auto;
+  }
+  .stg-tab{
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-family: 'Rajdhani', sans-serif;
+      font-weight: 600;
+      font-size: 12px;
+      letter-spacing: .05em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      padding: 10px 16px;
+      cursor: pointer;
+      white-space: nowrap;
+      position: relative;
+      border-bottom: 2px solid transparent;
+      transition: color .15s ease, border-color .15s ease;
+  }
+  .stg-tab:hover{ color: var(--text); }
+  .stg-tab.active{
+      color: #ff822f;
+      border-bottom: 2px solid #D9702A;
+  }
+
+  /* ---------- Content frame ---------- */
+  .stg-frame-wrap{
+      flex: 1;
+      min-height: 0;
+      background: rgba(10,7,5,0.4);
+  }
+  .stg-frame{
+      width: 100%;
+      height: 100%;
+      border: none;
+      display: block;
+  }
+</style>
+
+  <div class="stg-container">
+    <div class="stg-main">
+      <div class="stg-topbar">
+        <span class="stg-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 2048 2048"><path fill="currentColor" d="M1707 953q28-28 65-41t76-13q42 0 78 14t62 41t42 62t16 78q0 39-15 76t-43 65l-715 717l-377 94l94-377zm192 192q21-21 21-51q0-32-20-50t-52-19q-14 0-27 4t-23 14l-692 692l-34 135l135-34zm149-761v450q-29-21-61-34t-67-22V648l-896 447l-896-447v888h814l-128 128H0V384zM1024 953l881-441H143z"/></svg>
+        </span>
+        <span class="stg-title">MAILS</span>
+        <div class="stg-close-btn" id="stg-close-btn">&#10005;</div>
+      </div>
+
+      <div class="stg-tabbar">
+        <div class="stg-tab active" id="stg-tab-notice">
+          <span class="stg-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 14 14"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="m7.182 3.747l3.857 6.681m-.202-.351l-9.51 2.209L.72 11.23l6.667-7.132"/><path d="m3.396 11.805l.524.907a1.421 1.421 0 1 0 2.455-1.433l-.084-.145m1.153-9.297V.583m4.803 6.057H13.5m-12.111 0h1.253m.519-4.283l.886.887m6.793 0l.886-.887"/></g></svg>
+          </span>
+          NOTICE
+        </div>
+        <div class="stg-tab" id="stg-tab-system">
+          <span class="stg-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 16 16"><path fill="currentColor" fill-rule="evenodd" d="M8 14.5a6.47 6.47 0 0 0 3.25-.87V11.5A2.25 2.25 0 0 0 9 9.25H7a2.25 2.25 0 0 0-2.25 2.25v2.13A6.47 6.47 0 0 0 8 14.5m4.75-3v.937a6.5 6.5 0 1 0-9.5 0V11.5a3.75 3.75 0 0 1 2.486-3.532a3 3 0 1 1 4.528 0A3.75 3.75 0 0 1 12.75 11.5M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16M9.5 6a1.5 1.5 0 1 1-3 0a1.5 1.5 0 0 1 3 0" clip-rule="evenodd"/></svg>
+          </span>
+          SYSTEM
+        </div>
+        <div class="stg-tab" id="stg-tab-feedback">
+          <span class="stg-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 48 48"><g fill="none" stroke="currentColor" stroke-width="4"><path stroke-linejoin="round" d="M24 5L2 43h44z" clip-rule="evenodd"/><path stroke-linecap="round" d="M24 35v1m0-17l.008 10"/></g></svg>
+          </span>
+          REPORT FEEDBACK
+        </div>
+      </div>
+
+      <div class="stg-frame-wrap">
+        <iframe class="stg-frame" id="stg-content-frame" src="notice.html" title="Settings content"></iframe>
+      </div>
+    </div>
+
+  </div>
+
+<script>
+    
+// ---------- DOM refs ----------
+const stgFrame    = document.getElementById("stg-content-frame");
+const stgNotice   = document.getElementById("stg-tab-notice");
+const stgSystem   = document.getElementById("stg-tab-system");
+const stgFeedback = document.getElementById("stg-tab-feedback");
+const stgClose    = document.getElementById("stg-close-btn");
+
+const stgTabs = [stgNotice, stgSystem, stgFeedback];
+
+function activateTab(tab, src){
+    stgFrame.src = src;
+    stgTabs.forEach(t => t.classList.remove("active"));
+    tab.classList.add("active");
+}
+
+// ---------- Event listeners ----------
+stgNotice.addEventListener("click", () => activateTab(stgNotice, "notice.html"));
+stgSystem.addEventListener("click", () => activateTab(stgSystem, "system.html"));
+stgFeedback.addEventListener("click", () => activateTab(stgFeedback, "feedback.html"));
+
+// Hook this up to whatever closes the settings panel in your app
+stgClose?.addEventListener("click", () => {
+    // e.g. window.location.href = "lobby.html";
+});
+
+// ---------- Responsive scaling ----------
+const STG_DESIGN_H = 412;
+const stgContainer = document.querySelector('.stg-container');
+
+function resizeSettings() {
+    if (!stgContainer) return;
+
+    // Don't stretch the landscape design into a portrait frame —
+    // checkOrientation() would redirect to the rotate prompt.
+    const isLandscape = window.matchMedia('(orientation: landscape)').matches;
+    if (!isLandscape) return;
+
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+
+    const scale = vh / STG_DESIGN_H;
+    const scaledWidth = vw / scale;
+
+    stgContainer.style.width = `${scaledWidth}px`;
+    stgContainer.style.height = `${STG_DESIGN_H}px`;
+    stgContainer.style.transform = `scale(${scale})`;
+}
+
+resizeSettings();
+window.addEventListener('resize', resizeSettings);
+screen.orientation?.addEventListener('change', resizeSettings);
+
+// ---------- Orientation check (disabled) ----------
+// let stgRedirected = false;
+// let stgOrientationTimer = null;
+// function checkOrientation() {
+//     clearTimeout(stgOrientationTimer);
+//     stgOrientationTimer = setTimeout(() => {
+//         const isLandscape = window.matchMedia('(orientation: landscape)').matches;
+//         if (!isLandscape && !stgRedirected) {
+//             stgRedirected = true;
+//             window.location.replace('/orientationCheck.html?from=/settings.html');
+//         }
+//     }, 300);
+// }
+// checkOrientation();
+// window.addEventListener('resize', checkOrientation);
+// screen.orientation?.addEventListener('change', checkOrientation);
+</script>
+</body>
+</html>

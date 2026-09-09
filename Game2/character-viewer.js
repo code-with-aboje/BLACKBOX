@@ -129,7 +129,7 @@ loader.load(
     model.position.x -= center.x;
     model.position.y -= box.min.y;
     model.position.z -= center.z;
-
+    // model.position.z = -0.5;
     frameCameraToModel(size);
 
     window.dispatchEvent(new CustomEvent('model-ready'));

@@ -1,3 +1,9 @@
+// DOM
+const weapon = document.getElementById("weapon");
+weapon.addEventListener("click", ()=>{
+    window.location.href = "weapons/weapon.html";
+
+})
 // SCALE-TO-FIT: lobby is authored at a fixed 915x412 (Pixel 7 landscape).
 // Scale + center that box to whatever viewport it actually renders in,
 // instead of stretching/cropping the fixed-px layout.
@@ -8,13 +14,13 @@ function resizeLobby() {
     if (!lobbyContainer) return;
     const vw = window.innerWidth;
     const vh = window.innerHeight;
-    
+
     // Scale container to fit screen height
     const scale = vh / DESIGN_H;
-    
+
     // Dynamically expand container width to fill full viewport width
     const scaledWidth = vw / scale;
-    
+
     lobbyContainer.style.width = `${scaledWidth}px`;
     lobbyContainer.style.height = `${DESIGN_H}px`;
     lobbyContainer.style.transform = `scale(${scale})`;
@@ -128,7 +134,7 @@ screen.orientation?.addEventListener('change', checkOrientation);
 
 const settingsContainer = document.querySelector('.settings-container');
 
-function resizeSettings() {
+function resizeSettingsPanel() {
     if (!settingsContainer) return;
 
     // Don't stretch the landscape design into a portrait frame —
@@ -147,9 +153,9 @@ function resizeSettings() {
     settingsContainer.style.transform = `scale(${scale})`;
 }
 
-resizeSettings();
-window.addEventListener('resize', resizeSettings);
-screen.orientation?.addEventListener('change', resizeSettings);
+resizeSettingsPanel();
+window.addEventListener('resize', resizeSettingsPanel);
+screen.orientation?.addEventListener('change', resizeSettingsPanel);
 
 // SETTINGS TAB + SIDEBAR SWITCHING
 const settingsTabs = document.querySelectorAll('#settingsModal .tab');
@@ -199,4 +205,57 @@ storeSideItems.forEach(item => {
 });
 
 
+// MAIL MODAL
+// ---------- DOM refs ----------
+const stgFrame    = document.getElementById("stg-content-frame");
+const stgNotice   = document.getElementById("stg-tab-notice");
+const stgSystem   = document.getElementById("stg-tab-system");
+const stgFeedback = document.getElementById("stg-tab-feedback");
+const stgClose    = document.getElementById("stg-close-btn");
 
+const stgTabs = [stgNotice, stgSystem, stgFeedback];
+
+function activateTab(tab, src){
+    stgFrame.src = src;
+    stgTabs.forEach(t => t.classList.remove("active"));
+    tab.classList.add("active");
+}
+
+// ---------- Event listeners ----------
+// NOTE: paths now consistently point into the "mails/" folder,
+// matching the iframe's initial src="mails/notice.html" in lobby.html.
+stgNotice.addEventListener("click", () => activateTab(stgNotice, "mails/notice.html"));
+stgSystem.addEventListener("click", () => activateTab(stgSystem, "mails/system.html"));
+stgFeedback.addEventListener("click", () => activateTab(stgFeedback, "mails/feedback.html"));
+
+// Hook this up to whatever closes the settings panel in your app
+stgClose?.addEventListener("click", () => {
+    // e.g. window.location.href = "lobby.html";
+});
+
+// ---------- Responsive scaling ----------
+const STG_DESIGN_H = 412;
+const stgContainer = document.querySelector('.stg-container');
+
+function resizeMailPanel() {
+    if (!stgContainer) return;
+
+    // Don't stretch the landscape design into a portrait frame —
+    // checkOrientation() would redirect to the rotate prompt.
+    const isLandscape = window.matchMedia('(orientation: landscape)').matches;
+    if (!isLandscape) return;
+
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+
+    const scale = vh / STG_DESIGN_H;
+    const scaledWidth = vw / scale;
+
+    stgContainer.style.width = `${scaledWidth}px`;
+    stgContainer.style.height = `${STG_DESIGN_H}px`;
+    stgContainer.style.transform = `scale(${scale})`;
+}
+
+resizeMailPanel();
+window.addEventListener('resize', resizeMailPanel);
+screen.orientation?.addEventListener('change', resizeMailPanel);
