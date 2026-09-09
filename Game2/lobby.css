@@ -391,7 +391,7 @@ html, body{
 
 .play-btn {
     width: 130px;
-    height: 38px;
+    height: 42px;
     border: none;
     background-image: url(Assets/start_btn2.jpg);
     background-repeat: no-repeat;
@@ -442,7 +442,7 @@ html, body{
     /* POSITION */
     position: absolute;
     right: 20px;
-    top: 86%;
+    top: 88%;
 }
 
 /* HOVER */
