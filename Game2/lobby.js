@@ -1,9 +1,10 @@
 // DOM
 const weapon = document.getElementById("weapon");
-weapon.addEventListener("click", ()=>{
-    window.location.href = "weapons/weapon.html";
+const startBtn = document.getElementById("startBtn");
 
-})
+startBtn.addEventListener("click", ()=>{
+    startBtn.style.backgroundImage = "url('Assets/matchmaking.png')";
+});
 // SCALE-TO-FIT: lobby is authored at a fixed 915x412 (Pixel 7 landscape).
 // Scale + center that box to whatever viewport it actually renders in,
 // instead of stretching/cropping the fixed-px layout.

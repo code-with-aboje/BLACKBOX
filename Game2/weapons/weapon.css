@@ -1,0 +1,268 @@
+:root{
+    --panel: rgba(36, 24, 18, 0.88);
+    --panel-2: rgba(46, 33, 25, 0.92);
+    --line: #4A2F22;
+    --maroon: #6B1E1E;
+    --amber: #F5943C;
+    --amber-deep: #D9702A;
+    --text: #F3E9DD;
+    --text-dim: #B99C85;
+    --text-faint: #7A5F4E;
+    --green: #4CAF6A;
+}
+*{ box-sizing: border-box; font-family: 'Rajdhani', sans-serif; }
+html,body{ margin:0; padding:0; height:100%; width:100%; overflow:hidden; background:#0a0705; touch-action:none; overscroll-behavior:none; }
+
+#scene-bg{
+    position: fixed; inset:0;
+    background: radial-gradient(120% 100% at 15% 0%, #241812 0%, #0a0705 60%);
+    z-index:0;
+}
+#scene-bg::before{
+    content:'';
+    position:fixed; inset:0;
+    background-image: linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+    background-size: 38px 38px;
+    mask-image: radial-gradient(circle at 20% 10%, black 0%, transparent 65%);
+}
+
+.weapons-container{
+    position: fixed;
+    top:0; left:0;
+    height:412px;
+    overflow:hidden;
+    transform-origin: 0 0;
+    will-change: transform;
+    display:flex;
+    flex-direction:column;
+    z-index:1;
+    color: var(--text);
+}
+
+/* TOP BAR */
+.wp-topbar{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:8px 18px;
+    background: rgba(0,0,0,0.35);
+    border-bottom:1px solid var(--line);
+    backdrop-filter: blur(6px);
+}
+.wp-title{
+    font-family:'Orbitron', sans-serif;
+    font-weight:800;
+    font-size:15px;
+    letter-spacing:0.08em;
+    color:var(--text);
+}
+.wp-back{
+    width:26px; height:26px;
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer;
+    color:var(--text-dim);
+    border-left:2px solid var(--amber);
+    padding-left:10px;
+    transition:color .15s ease;
+}
+.wp-back:hover{ color:var(--text); }
+
+/* CATEGORY TABS */
+.wp-cats{
+    display:flex;
+    background: linear-gradient(180deg, rgba(46,33,25,0.9) 0%, rgba(34,24,18,0.9) 100%);
+    border-bottom:1px solid var(--line);
+    padding:0 6px;
+    overflow-x:auto;
+    flex-shrink:0;
+}
+.wp-cat{
+    display:flex; align-items:center; gap:8px;
+    font-weight:600; font-size:11.5px; letter-spacing:.05em;
+    text-transform:uppercase;
+    color:var(--text-dim);
+    padding:9px 14px;
+    cursor:pointer;
+    white-space:nowrap;
+    border-bottom:2px solid transparent;
+    transition:color .15s ease, border-color .15s ease;
+}
+.wp-cat:hover{ color:var(--text); }
+.wp-cat.active{ color:var(--amber); border-bottom:2px solid var(--amber-deep); }
+.wp-cat svg{ width:15px; height:15px; flex-shrink:0; }
+
+/* BODY LAYOUT */
+.wp-body{
+    flex:1;
+    min-height:0;
+    display:flex;
+}
+
+/* LEFT: weapon list for active category */
+.wp-list{
+    width:170px;
+    min-width:170px;
+    background: linear-gradient(180deg, rgba(36,24,18,0.9) 0%, rgba(26,19,16,0.9) 100%);
+    border-right:1px solid var(--line);
+    overflow-y:auto;
+    padding:6px 0;
+}
+.wp-item{
+    padding:8px 14px;
+    cursor:pointer;
+    border-left:3px solid transparent;
+    transition: background .15s ease, border-color .15s ease;
+}
+.wp-item:hover{ background:rgba(255,255,255,0.03); }
+.wp-item.active{
+    background: linear-gradient(90deg, var(--maroon) 0%, rgba(107,30,30,0.12) 100%);
+    border-left:3px solid var(--amber);
+}
+.wp-item-name{ font-size:12px; font-weight:700; letter-spacing:.03em; color:var(--text); }
+.wp-item-equipped{ font-size:9.5px; color:var(--text-faint); letter-spacing:.03em; margin-top:1px; }
+
+/* CENTER: showcase (now takes the full remaining width) */
+.wp-showcase{
+    flex:1;
+    min-width:0;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    position:relative;
+    padding:10px 20px;
+}
+.wp-showcase-name{
+    font-family:'Orbitron', sans-serif;
+    font-weight:900;
+    font-size:26px;
+    letter-spacing:.05em;
+    color:var(--text);
+    text-shadow: 0 0 18px rgba(245,148,60,0.25);
+}
+.wp-showcase-sub{
+    font-size:11px;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    color:var(--amber);
+    margin-top:2px;
+    font-weight:600;
+}
+.wp-showcase-sub.is-equipped{ color: var(--green); }
+
+/* Row that holds the preview art and the stat bars side by side */
+.wp-showcase-row{
+    display:flex;
+    align-items:center;
+    gap:24px;
+    width:100%;
+    justify-content:center;
+    margin-top:10px;
+}
+.wp-art{
+    width:220px;
+    height:150px;
+    flex-shrink:0;
+    margin:0;
+    background: linear-gradient(135deg, rgba(245,148,60,0.08), rgba(255,255,255,0.02));
+    border:1px solid var(--line);
+    border-radius:2px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:var(--text-faint);
+    font-size:10px;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+}
+.wp-stats{
+    flex:1;
+    max-width:280px;
+    display:flex;
+    flex-direction:column;
+    gap:7px;
+    margin-top:0;
+}
+.wp-stat-row{ display:flex; align-items:center; gap:10px; }
+.wp-stat-label{
+    width:68px;
+    font-size:10px;
+    letter-spacing:.06em;
+    text-transform:uppercase;
+    color:var(--text-dim);
+    flex-shrink:0;
+}
+.wp-stat-track{ flex:1; display:flex; gap:2px; height:7px; }
+.wp-stat-seg{
+    flex:1;
+    background:rgba(255,255,255,0.08);
+    border:1px solid rgba(245,148,60,0.12);
+    clip-path: polygon(15% 0, 100% 0, 85% 100%, 0 100%);
+}
+.wp-stat-seg.lit{ background:var(--amber); box-shadow:0 0 6px 1px rgba(245,148,60,0.5); border-color:var(--amber); }
+
+/* EQUIP BUTTON */
+.wp-equip-btn{
+    margin-top:16px;
+    padding:8px 26px;
+    background: linear-gradient(180deg, var(--amber) 0%, var(--amber-deep) 100%);
+    color:#241812;
+    font-family:'Rajdhani', sans-serif;
+    font-weight:700;
+    font-size:12px;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    border:none;
+    border-radius:2px;
+    cursor:pointer;
+    transition: transform .1s ease, filter .1s ease, background .1s ease;
+}
+.wp-equip-btn:hover{ filter:brightness(1.08); }
+.wp-equip-btn:active{ transform:scale(0.97); }
+.wp-equip-btn.is-equipped{
+    background: rgba(76,175,106,0.15);
+    color: var(--green);
+    cursor: default;
+}
+.wp-equip-btn.is-equipped:hover{ filter:none; }
+
+/* BOTTOM: skin carousel */
+.wp-skins{
+    flex-shrink:0;
+    background: rgba(10,7,5,0.5);
+    border-top:1px solid var(--line);
+    display:flex;
+    align-items:center;
+    gap:8px;
+    padding:8px 14px;
+    overflow-x:auto;
+}
+.wp-skin{
+    flex-shrink:0;
+    width:56px; height:38px;
+    background:rgba(255,255,255,0.04);
+    border:1px solid var(--line);
+    border-radius:2px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:2px;
+    font-size:8px;
+    color:var(--text-faint);
+    letter-spacing:.04em;
+    cursor:pointer;
+    transition: border-color .15s ease;
+}
+.wp-skin:hover{ border-color:var(--amber-deep); }
+.wp-skin.active{ border-color:var(--amber); box-shadow:0 0 6px rgba(245,148,60,0.35); }
+.wp-skin-tag{
+    font-size:6.5px;
+    color:var(--green);
+    letter-spacing:.06em;
+    text-transform:uppercase;
+}
+/* #weaponArt {
+    background-color:rgb(209, 229, 182);
+} */
