@@ -161,11 +161,15 @@ html,body{ margin:0; padding:0; height:100%; width:100%; overflow:hidden; backgr
     margin-top:10px;
 }
 .wp-art{
-    width:220px;
-    height:150px;
+    width:260px;
+    height:200px;
     flex-shrink:0;
     margin:0;
-    background: linear-gradient(135deg, rgba(245,148,60,0.08), rgba(255,255,255,0.02));
+    background-image: url("/Game2/Assets/BGs/bg.png");
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: center center;
+    background-size: 200%;
     border:1px solid var(--line);
     border-radius:2px;
     display:flex;
@@ -175,6 +179,7 @@ html,body{ margin:0; padding:0; height:100%; width:100%; overflow:hidden; backgr
     font-size:10px;
     letter-spacing:.08em;
     text-transform:uppercase;
+    margin-left: -20%;
 }
 .wp-stats{
     flex:1;
@@ -204,7 +209,7 @@ html,body{ margin:0; padding:0; height:100%; width:100%; overflow:hidden; backgr
 
 /* EQUIP BUTTON */
 .wp-equip-btn{
-    margin-top:16px;
+    margin-top:-21px;
     padding:8px 26px;
     background: linear-gradient(180deg, var(--amber) 0%, var(--amber-deep) 100%);
     color:#241812;
@@ -264,5 +269,5 @@ html,body{ margin:0; padding:0; height:100%; width:100%; overflow:hidden; backgr
     text-transform:uppercase;
 }
 /* #weaponArt {
-    background-color:rgb(209, 229, 182);
+    margin-left: -20%;
 } */
